@@ -1,5 +1,5 @@
 
-const initializeUserModel= require('../../models/auth');
+const initializeUserModel= require('../models/auth');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -28,6 +28,6 @@ const jwt = require('jsonwebtoken');
   }
 };
 
-module.exports = {
-  loginUser,
-};
+module.exports = 
+  loginUser
+  

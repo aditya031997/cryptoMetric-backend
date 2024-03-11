@@ -1,6 +1,7 @@
 const express= require('express')
-const {Data, Listing}=require('../cryptometric-backend/controllers/coin')
+const{ Data, Listing}=require('../controllers/coin')
 const router=express.Router()
+
 
 router.get('/coins',Data)
 router.get('/list', Listing)
