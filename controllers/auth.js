@@ -11,12 +11,7 @@ const jwt = require('jsonwebtoken');
      if (!user) {
       return res.status(401).json({ status: false, msg: 'Invalid Email' });
     }
-    // const isPasswordValid = await bcrypt.compare(password, user.password);
-    // if (!isPasswordValid) {
-    //   return res.status(401).json({ status: false, msg: 'Invalid Password' });
-    // }
-    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, {
-    
+  const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, {
     });
    res.json({ status: true, token });
   } catch (error) {
