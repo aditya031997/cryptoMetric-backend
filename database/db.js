@@ -15,6 +15,7 @@ async function connectToDatabase() {
 
   try {
     await sequelize.authenticate();
+    
     console.log('MySQL Connected!');
   } catch (error) {
     console.error('MySQL connection error:', error);

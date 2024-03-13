@@ -24,42 +24,12 @@ const wss = new WebSocket.Server({ server });
 app.use(express.json());
 app.use(cors());
 
-app.use('/api/users', auth);
-app.use('/api/coin', coins);
+app.use('/api', auth);
+app.use('/api', coins);
 
-wss.on('connection', (ws) => {
-    console.log('Client connected');
-
-    // Handle messages from the client
-    ws.on('message', (message) => {
-        console.log('Received message:', message);
-
-        // Here you can handle different types of messages
-        // For example, if you receive a message to start the interval
-        if (message === 'start_interval') {
-            // Start the interval to trigger the API call every 5 seconds
-            intervalId = setInterval(() => {
-                console.log('Calling API...');
-                triggerAPI();
-            }, 5000);
-        } else if (message === 'stop_interval') {
-            // Stop the interval when you receive the stop message
-            clearInterval(intervalId);
-            console.log('Interval stopped');
-        }
-    });
-});
 
 // Function to trigger the API call
-async function triggerAPI() {
-    try {
-        // Make your API call here
-        const response = await axios.get('your_api_endpoint');
-        console.log('API Response:', response.data);
-    } catch (error) {
-        console.error('Error calling API:', error);
-    }
-}
+
 
 saveData();
 connectToDatabase();
