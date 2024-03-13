@@ -31,14 +31,12 @@ const CoinMarket=require('../models/coins')
 // };
 
 
-const create = async (req, res) => {
+const createCryptoCoins = async (req, res) => {
     try {
       const Coin = await CoinMarket();
       const apiKey = process.env.COIN_APIKEY;
       const apiUrl = process.env.API_URL;
       const apiInfoUrl =process.env.APIINFO_URL ;
-
-  
       const response = await fetch(`${apiUrl}`, {
         headers: {
           'X-CMC_PRO_API_KEY': apiKey,
@@ -135,6 +133,6 @@ const getCoinData=async(req,res)=>{
 
 module.exports = {
     // Data,
-    create,
+    createCryptoCoins,
     getCoinData
 };

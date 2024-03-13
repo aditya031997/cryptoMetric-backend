@@ -1,9 +1,9 @@
 const express= require('express')
-const{ Data, create,getCoinData}=require('../controllers/coin')
+const coinsController = require("../controllers/coin")
 const router=express.Router()
 
 
 // router.get('/coins',Data)
-router.get('/addMarketdata', create)
-router.get('/cryptocurrencyInfo',getCoinData)
+router.get('/addMarketdata',coinsController.createCryptoCoins)
+router.get('/cryptocurrencyInfo',coinsController.getCoinData)
 module.exports=router
