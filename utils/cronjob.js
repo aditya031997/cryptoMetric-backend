@@ -1,26 +1,34 @@
-const cron = require("cron");
-const axios=require("axios")
-const {createCryptoCoins} = require('../controllers/coin');
+// In utils/cronjob.js
 
-const startCronJob = () => {
-    // Set up the initial cron job direct
+const cron = require('cron');
+const axios = require('axios');
 
-    try {
-        const job = new cron.CronJob('2 * * * * 2', async () => {
-        console.log("{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}}}}}}")
-try {
-    const response = await axios.get('http://localhost:5000/api/coins/addMarketdata');
-    console.log("API Response:", response.data);
-} catch (error) {
-    console.log(error)
-}});
-        job.start();
-        console.log("Cornjob executing ",new Date())  
-    } catch (error) {
-        console.log("error",error)
-    }
-    
+let socketData = null;
+
+const fetchData = async () => {
+  try {
+    const response = await axios.get(
+      'http://localhost:5000/api/coins/cryptoCurrencyInfo',
+    );
+    socketData = response.data;
+  } catch (error) {
+    console.error('Error fetching data:', error.message);
+  }
 };
 
-module.exports = startCronJob;
+const startCronJob = (io) => {
+  try {
+    const job = new cron.CronJob('*/2 * * * *', async () => {
+      await fetchData();
+      if (io) {
+        io.emit('UpdatedTableListing', socketData);
+      }
+    });
+    job.start();
+    console.log('Cronjob started:', new Date());
+  } catch (error) {
+    console.error('Cronjob error:', error.message);
+  }
+};
 
+module.exports = { startCronJob, socketData };

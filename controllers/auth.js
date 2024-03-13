@@ -37,7 +37,6 @@ const updateUserSocketId = async (userId, socketId, res) => {
     const user = await User.findOne({ where: { id: userId } });
 
     if (user) {
-      // Update user's socket ID
       user.socketId = socketId;
       await user.save();
       return { success: true }; // Return success response
