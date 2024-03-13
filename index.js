@@ -1,25 +1,24 @@
 const express = require('express');
 const cors = require('cors');
 const auth = require('./routes/auth');
+const { updateUserSocketId } = require('./controllers/auth');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const coins = require('./routes/coin');
-const saveData = require('./utils/cronjob');
 const { connectToDatabase } = require('./database/db');
-
-const { createServer } = require('http');
 const { Server } = require('socket.io');
-const WebSocket = require('ws');
+const http = require('http');
 
 dotenv.config();
 const port = process.env.PORT;
 const app = express();
-
-const server = createServer(app);
-const io = new Server(server);
-const wss = new WebSocket.Server({ server });
-
-
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+  // transports: ['socket'],
+});
 
 app.use(express.json());
 app.use(cors());
@@ -27,40 +26,31 @@ app.use(cors());
 app.use('/api/users', auth);
 app.use('/api/coin', coins);
 
-wss.on('connection', (ws) => {
-    console.log('Client connected');
+connectToDatabase();
 
-    // Handle messages from the client
-    ws.on('message', (message) => {
-        console.log('Received message:', message);
+io.on('connection', async (socket) => {
+  console.log('Socket Connected');
+  // Handle saving and updating socket ID
+  socket.on('saveSocketId', async (userId) => {
+    // Call a function to save the socket ID in the database
+    await updateUserSocketId(userId, socket.id);
+  });
 
-        // Here you can handle different types of messages
-        // For example, if you receive a message to start the interval
-        if (message === 'start_interval') {
-            // Start the interval to trigger the API call every 5 seconds
-            intervalId = setInterval(() => {
-                console.log('Calling API...');
-                triggerAPI();
-            }, 5000);
-        } else if (message === 'stop_interval') {
-            // Stop the interval when you receive the stop message
-            clearInterval(intervalId);
-            console.log('Interval stopped');
-        }
+  axios
+    .get(`${process.env.SERVER_PORT}/api/coin/coins`)
+    .then((response) => {
+      socket.emit('InitialTableListing', response.data);
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error.message);
     });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
 });
 
-// Function to trigger the API call
-async function triggerAPI() {
-    try {
-        // Make your API call here
-        const response = await axios.get('your_api_endpoint');
-        console.log('API Response:', response.data);
-    } catch (error) {
-        console.error('Error calling API:', error);
-    }
-}
-
-saveData();
-connectToDatabase();
-server.listen(port, () => console.log(`Server is running on http://localhost:${port}`));
+server.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});

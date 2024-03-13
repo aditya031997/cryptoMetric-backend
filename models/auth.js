@@ -1,7 +1,6 @@
 // const { DataTypes } = require('sequelize');
 // const sequelize = require('../database/db');
 
-
 // const User=sequelize.define('users',{
 //     id:{
 //         type:DataTypes.INTEGER,
@@ -14,7 +13,7 @@
 //     email:{
 //      type:DataTypes.STRING,
 //      unique:true
-     
+
 //     },password: {
 //         type: DataTypes.STRING,
 //       },
@@ -58,19 +57,17 @@
 //       },
 // })
 
-
 // module.exports=User
 
 // models/userModel.js
 // models/userModel.js
 // models/userModel.js
 const { DataTypes } = require('sequelize');
-const {connectToDatabase} = require('../database/db');
+const { connectToDatabase } = require('../database/db');
 
 async function initializeUserModel() {
   const sequelize = await connectToDatabase();
 
-  
   const User = sequelize.define('users', {
     id: {
       type: DataTypes.INTEGER,
@@ -85,6 +82,9 @@ async function initializeUserModel() {
       unique: true,
     },
     password: {
+      type: DataTypes.STRING,
+    },
+    socketId: {
       type: DataTypes.STRING,
     },
     // ... other fields
