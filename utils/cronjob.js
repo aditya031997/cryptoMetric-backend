@@ -1,15 +1,34 @@
-const cron =require("cron")
-const saveData=async()=>{
-    try{
-    
-console.log("CronJob Working Datasaved Sucessfuly at",new Date())
- }catch(error){
-    console.log(error)
- }
-const job = new cron.CronJob('*/2 * * * *',async ()=>{
-await saveData()
-})
-}
+// In utils/cronjob.js
 
-module.exports=
-saveData
+const cron = require('cron');
+const axios = require('axios');
+
+let socketData = null;
+
+const fetchData = async () => {
+  try {
+    const response = await axios.get(
+      'http://localhost:5000/api/coins/cryptoCurrencyInfo',
+    );
+    socketData = response.data;
+  } catch (error) {
+    console.error('Error fetching data:', error.message);
+  }
+};
+
+const startCronJob = (io) => {
+  try {
+    const job = new cron.CronJob('*/2 * * * *', async () => {
+      await fetchData();
+      if (io) {
+        io.emit('UpdatedTableListing', socketData);
+      }
+    });
+    job.start();
+    console.log('Cronjob started:', new Date());
+  } catch (error) {
+    console.error('Cronjob error:', error.message);
+  }
+};
+
+module.exports = { startCronJob, socketData };
