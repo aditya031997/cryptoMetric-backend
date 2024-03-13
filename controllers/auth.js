@@ -7,6 +7,7 @@ const loginUser = async (req, res) => {
     const { email } = req.body;
     const User = await initializeUserModel();
     const user = await User.findOne({ where: { email } });
+    console.log('User', user);
     if (!user) {
       return res.status(401).json({ status: false, msg: 'Invalid Email' });
     }
@@ -15,7 +16,12 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       {},
     );
-    res.json({ status: true, token });
+    const response = {
+      status: true,
+      data: user.dataValues, 
+      token: token, 
+    };
+    res.json(response);
   } catch (error) {
     console.error(error);
     res.status(500).json({

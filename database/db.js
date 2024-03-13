@@ -8,9 +8,9 @@ async function connectToDatabase() {
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    sync: {
-      force: true, // Use force:true to drop tables and recreate them (be cautious)
-    },
+    // sync: {
+    //   force: true, // Use force:true to drop tables and recreate them (be cautious)
+    // },
     define: {
       timestamps: false,
     },
@@ -18,7 +18,7 @@ async function connectToDatabase() {
 
   try {
     await sequelize.authenticate();
-    
+
     console.log('MySQL Connected!');
   } catch (error) {
     console.error('MySQL connection error:', error);

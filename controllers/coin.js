@@ -120,7 +120,7 @@ const getCoinData = async (req, res) => {
     const Coin = await CoinMarket();
     const allCoins = await Coin.findAll();
 
-    if (!allCoins || allCoins.length === 0) {
+    if (!allCoins || allCoins.length == 0) {
       return res.status(404).json({
         status: false,
         msg: 'No data found',
