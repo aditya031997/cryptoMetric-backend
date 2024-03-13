@@ -137,8 +137,63 @@ const getCoinData = async (req, res) => {
     res.status(500).json({ message: 'Error retrieving coin data' });
   }
 };
+const getCoinCategories = async (req, res) => {
+  try {
+    const Coin = await CoinMarket();
+    const apiKey = process.env.COIN_API_KEY;
+    const apiUrl = process.env.API_URL;
+    const response = await fetch(
+      `${apiUrl}/v1/cryptocurrency/categories`,
+      {
+        headers: {
+          'X-CMC_PRO_API_KEY': apiKey,
+        },
+      },
+    );
+    const dataForId = await response.json();
+    // return console.log(dataForId,
+    //   "::::::::::::::::::::::::::::::::::::::::::::::::::")
+    res.status(200).json({
+      status: true,
+      msg: 'All categroies ',
+      data: dataForId,
+    });
+  } catch (error) {
+    console.error('Error retrieving coin data:', error);
+    res.status(500).json({ message: 'Error retrieving coin data' });
+  }
+};
+const getbyCategoryId  = async (req, res) => {
+  try {
+    const  id  =  req.params.id
+    console.log(id,"::::::::::::::::::::::")
+    const Coin = await CoinMarket();
+    const apiKey = process.env.COIN_API_KEY;
+    const apiUrl = process.env.API_URL;
+    const params = new URLSearchParams({ id: id });
+    const response = await fetch(
+      `${apiUrl}/v1/cryptocurrency/category?id=${id}`,
+      {
+        headers: {
+          'X-CMC_PRO_API_KEY': apiKey,
+        },
+      },
+    );
+    const dataForId = await response.json();
 
+    res.status(200).json({
+      status: true,
+      msg: 'All categroies ',
+      data: dataForId,
+    });
+  } catch (error) {
+    console.error('Error retrieving coin data:', error);
+    res.status(500).json({ message: 'Error retrieving coin data' });
+  }
+};
 module.exports = {
   createCryptoCoins,
   getCoinData,
+  getCoinCategories,
+  getbyCategoryId
 };

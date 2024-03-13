@@ -7,6 +7,7 @@ const axios = require('axios');
 const coins = require('./routes/coin');
 const { connectToDatabase } = require('./database/db');
 const { Server } = require('socket.io');
+const startCronJob=require('./utils/cronjob')
 const http = require('http');
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use('/api', auth);
 app.use('/api/coins', coins);
 
 connectToDatabase();
+startCronJob()
 
 io.on('connection', async (socket) => {
   console.log('Socket Connected');
@@ -35,16 +37,18 @@ io.on('connection', async (socket) => {
     // Call a function to save the socket ID in the database
     await updateUserSocketId(userId, socket.id);
   });
+    
+  const cron=await startCronJob(socket);
+  console.log(cron)
 
-  axios
-    .get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`)
-    .then((response) => {
-      socket.emit('InitialTableListing', response.data);
-    })
-    .catch((error) => {
-      console.error('Error fetching data:', error.message);
-    });
-
+//   axios
+//     .get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`)
+//     .then((response) => {
+//       socket.emit('InitialTableListing', response.data);
+//     })
+//     .catch((error) => {
+//       console.error('Error fetching data:', error.message);
+//     });
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('Client disconnected');
