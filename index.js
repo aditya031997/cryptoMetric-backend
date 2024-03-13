@@ -23,8 +23,8 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors());
 
-app.use('/api/users', auth);
-app.use('/api/coin', coins);
+app.use('/api', auth);
+app.use('/api/coins', coins);
 
 connectToDatabase();
 
@@ -36,14 +36,15 @@ io.on('connection', async (socket) => {
     await updateUserSocketId(userId, socket.id);
   });
 
-  axios
-    .get(`${process.env.SERVER_PORT}/api/coin/coins`)
-    .then((response) => {
-      socket.emit('InitialTableListing', response.data);
-    })
-    .catch((error) => {
-      console.error('Error fetching data:', error.message);
-    });
+  // axios
+  //   .get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`)
+  //   .then((response) => {
+  //     console.log('response', response.data);
+  //     socket.emit('InitialTableListing', response.data);
+  //   })
+  //   .catch((error) => {
+  //     console.error('Error fetching data:', error.message);
+  //   });
 
   // Handle disconnection
   socket.on('disconnect', () => {
