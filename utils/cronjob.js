@@ -1,5 +1,3 @@
-// In utils/cronjob.js
-
 const cron = require('cron');
 const axios = require('axios');
 
@@ -15,10 +13,9 @@ const fetchData = async () => {
     console.error('Error fetching data:', error.message);
   }
 };
-
 const startCronJob = (io) => {
   try {
-    const job = new cron.CronJob('*/2 * * * *', async () => {
+    const job = new cron.CronJob('* * * * *24', async () => {
       await fetchData();
       if (io) {
         io.emit('UpdatedTableListing', socketData);

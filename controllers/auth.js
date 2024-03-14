@@ -39,13 +39,13 @@ const updateUserSocketId = async (userId, socketId, res) => {
     if (user) {
       user.socketId = socketId;
       await user.save();
-      return { success: true }; // Return success response
+      return { success: true };
     } else {
-      return { success: false, message: 'User not available' }; // Return error response
+      return { success: false, message: 'User not available' }; 
     }
   } catch (error) {
     console.error('Error checking user availability:', error);
-    return { success: false, message: 'Internal server error' }; // Return error response
+    return { success: false, message: 'Internal server error' };
   }
 };
 
