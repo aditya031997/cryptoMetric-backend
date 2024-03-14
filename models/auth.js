@@ -1,4 +1,3 @@
-
 const { DataTypes } = require('sequelize');
 const { connectToDatabase } = require('../database/db');
 
@@ -19,9 +18,6 @@ async function initializeUserModel() {
       unique: true,
     },
     password: {
-      type: DataTypes.STRING,
-    },
-    socketId: {
       type: DataTypes.STRING,
     },
     // ... other fields

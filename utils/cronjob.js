@@ -1,16 +1,35 @@
-// In utils/cronjob.js
-
 const cron = require('cron');
 const axios = require('axios');
 
 let socketData = null;
 
-const fetchData = async () => {
+const fetchMarketData = async () => {
+  try {
+    await axios.get(`${process.env.SERVER_PORT}/api/coins/addMarketData`);
+    console.log('Market data added successfully.');
+  } catch (error) {
+    console.error('Error adding market data:', error.message);
+    throw error;
+  }
+};
+
+const fetchCryptoCurrencyInfo = async () => {
   try {
     const response = await axios.get(
-      'http://localhost:5000/api/coins/cryptoCurrencyInfo',
+      `${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`,
     );
     socketData = response.data;
+    console.log('Crypto currency info fetched successfully.');
+  } catch (error) {
+    console.error('Error fetching crypto currency info:', error.message);
+    throw error;
+  }
+};
+
+const fetchData = async () => {
+  try {
+    await fetchMarketData();
+    await fetchCryptoCurrencyInfo();
   } catch (error) {
     console.error('Error fetching data:', error.message);
   }
@@ -18,7 +37,8 @@ const fetchData = async () => {
 
 const startCronJob = (io) => {
   try {
-    const job = new cron.CronJob('*/2 * * * *', async () => {
+    //the expression should be '0 0 * * *'. This expression runs at midnight every day.
+    const job = new cron.CronJob('0 0 * * *', async () => {
       await fetchData();
       if (io) {
         io.emit('UpdatedTableListing', socketData);
