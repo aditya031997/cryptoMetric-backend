@@ -11,6 +11,7 @@ const http = require('http');
 const { startCronJob, socketData } = require('./utils/cronjob');
 const axios = require('axios');
 
+
 dotenv.config();
 const port = process.env.PORT;
 const app = express();
@@ -29,6 +30,10 @@ app.use('/api/coins', coins);
 
 connectToDatabase();
 startCronJob(io);
+
+
+
+
 
 io.on('connection', async (socket) => {
   console.log('Socket Connected');

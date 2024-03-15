@@ -15,7 +15,7 @@ const fetchData = async () => {
 };
 const startCronJob = (io) => {
   try {
-    const job = new cron.CronJob('* * * * *24', async () => {
+    const job = new cron.CronJob('0 0 */1 * *', async () => {
       await fetchData();
       if (io) {
         io.emit('UpdatedTableListing', socketData);
