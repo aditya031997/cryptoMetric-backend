@@ -42,7 +42,6 @@ io.on('connection', async (socket) => {
     .catch((error) => {
       console.error('Error fetching data:', error.message);
     });
-  // Handle disconnection
   socket.on('disconnect', () => {
     console.log('Client disconnected');
   });
