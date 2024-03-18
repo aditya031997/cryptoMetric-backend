@@ -31,10 +31,6 @@ app.use('/api/coins', coins);
 connectToDatabase();
 startCronJob(io);
 
-
-
-
-
 io.on('connection', async (socket) => {
   console.log('Socket Connected');
   socket.on('saveSocketId', async (userId) => {
@@ -45,7 +41,7 @@ io.on('connection', async (socket) => {
     socket.emit('InitialTableListing', socketData);
   }
   axios
-    .get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`)
+    .get(`${process.env.API_URL}/api/coins/cryptoCurrencyInfo`)
     .then((response) => {
       socket.emit('InitialTableListing', response.data);
     })

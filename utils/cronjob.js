@@ -6,13 +6,26 @@ let socketData = null;
 const fetchData = async () => {
   try {
     const response = await axios.get(
-      'http://localhost:5000/api/coins/cryptoCurrencyInfo',
+      `${process.env.apiUrl}api/coins/cryptoCurrencyInfo`,
     );
     socketData = response.data;
   } catch (error) {
     console.error('Error fetching data:', error.message);
   }
 };
+
+
+const addCategories=async()=>{
+  try {
+    const response =await axios.post(`${process.env.SERVER_PORT}/api/coins/addcoinsCategories`)
+    console.log("Categories added sucessfully",response)
+  } catch (error) {
+    console.log("error adding categories")
+  }
+}
+
+
+
 const startCronJob = (io) => {
   try {
     const job = new cron.CronJob('0 0 */1 * *', async () => {
@@ -20,6 +33,7 @@ const startCronJob = (io) => {
       if (io) {
         io.emit('UpdatedTableListing', socketData);
       }
+      addCategories()
     });
     job.start();
     console.log('Cronjob started:', new Date());

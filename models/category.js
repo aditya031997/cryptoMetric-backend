@@ -1,63 +1,56 @@
-const { DataTypes, STRING } = require('sequelize');
-const { connectToDatabase } = require('../database/db');
+const { DataTypes, STRING } = require("sequelize");
+const { connectToDatabase } = require("../database/db");
 
 async function initializeCategoryModel() {
   const sequelize = await connectToDatabase();
-  const Category = sequelize.define('categories', {
+  const Category = sequelize.define("categories", {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-      },
-      categoryId : {
-        type: DataTypes.STRING
-      },
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    categoryId: {
+      type: DataTypes.STRING,
+    },
     name: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     coinsId: {
-        type: DataTypes.TEXT, // Store coinsId as a string
-        allowNull: false, // Assuming coinsId cannot be null
-        get() {
-          const value = this.getDataValue('coinsId');
-          return value ? JSON.parse(value) : []; 
-        },
-        set(value) {
-          this.setDataValue('coinsId', JSON.stringify(value));
-        }
+      type: DataTypes.TEXT,
+      allowNull: false,
+      get() {
+        const value = this.getDataValue("coinsId");
+        return value ? JSON.parse(value) : [];
       },
-    title: {
-        type: DataTypes.STRING
+      set(value) {
+        this.setDataValue("coinsId", JSON.stringify(value));
+      },
     },
-    // description: {
-    //     type: DataTypes.STRING
-    // },
+    title: {
+      type: DataTypes.STRING,
+    },
     num_tokens: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     avg_price_change: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     market_cap: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     market_cap_change: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     volume: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     last_updated: {
-        type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
-    // coins:{
-    // type:DataTypes.STRING
-    // },
   });
-  await sequelize.sync({ alter:true });
+  await sequelize.sync({ alter: true });
 
   return Category;
 }
-
 
 module.exports = initializeCategoryModel;
