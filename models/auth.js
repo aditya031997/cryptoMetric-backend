@@ -20,8 +20,32 @@ async function initializeUserModel() {
     password: {
       type: DataTypes.STRING,
     },
-    // ... other fields
+    socketId: {
+      type: DataTypes.STRING,
+    },
+    provider:{
+      type: DataTypes.STRING,
+    },
+    provider_id:{
+    type: DataTypes.STRING,
+    },
+    is_new_coin_alert_enabled:{
+      type: DataTypes.STRING,
+
+    },
+    is_increase_alert_enabled:{
+      type: DataTypes.STRING,
+    },
+    is_decrease_alert_enabled:{
+      type: DataTypes.STRING,
+    },
+    email_alert_status:{
+      type: DataTypes.STRING,
+
+    }
+    
   });
+  await sequelize.sync({ alter:true });
 
   return User;
 }

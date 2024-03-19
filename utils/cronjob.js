@@ -3,6 +3,14 @@ const axios = require('axios');
 
 let socketData = null;
 
+const addCategories = async () => {
+  try {
+    await axios.post(`${process.env.SERVER_PORT}/api/coins/addCoinsCategories`);
+  } catch (error) {
+    console.log('error adding categories');
+  }
+};
+
 const fetchMarketData = async () => {
   try {
     await axios.get(`${process.env.SERVER_PORT}/api/coins/addMarketData`);
@@ -26,12 +34,14 @@ const fetchCryptoCurrencyInfo = async () => {
 
 const fetchData = async () => {
   try {
+    await addCategories();
     await fetchMarketData();
     await fetchCryptoCurrencyInfo();
   } catch (error) {
     console.error('Error fetching data:', error.message);
   }
 };
+
 const startCronJob = (io) => {
   try {
     //the expression should be '0 0 * * *'. This expression runs at midnight every day.

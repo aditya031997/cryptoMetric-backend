@@ -22,47 +22,42 @@ const createCryptoCoins = async (req, res) => {
     const allCoinIds = coinDataArray.map((entry) => entry.id);
     const allCoinData = await Coin.findAll();
     const coinDataBaseIds = allCoinData.map((entry) => entry.id);
-
     const missingImageIds = allCoinIds.filter(
       (id) => !coinDataBaseIds.includes(id),
     );
     const existingCoinIds = allCoinIds.filter((id) =>
       coinDataBaseIds.includes(id),
     );
-
-    if (missingImageIds.length > 0) {
-      const missingImageCoins = coinDataArray.filter(
-        (coin) => missingImageIds.includes(coin.id) && !coin.logo,
+    if (existingCoinIds.length > 0) {
+      const existingCoinIdsImage = coinDataArray.filter(
+        (coin) => existingCoinIds.includes(coin.id) && !coin.logo,
       );
-
-      for (const coin of missingImageCoins) {
+      for (const coin of existingCoinIdsImage) {
         const coinObject = {
-          id: coin.id,
-          name: coin.name,
-          slug: coin.slug,
-          symbol: coin.symbol,
-          price: coin.quote.USD.price,
-          num_market_pairs: coin.num_market_pairs,
-          cmc_rank: coin.cmc_rank,
-          circulating_supply: coin.circulating_supply,
-          total_supply: coin.total_supply,
-          last_updated: coin.last_updated,
-          volume_24h: coin.quote.USD.volume_24h,
-          volume_change_24h: coin.quote.USD.volume_change_24h,
-          percent_change_1h: coin.quote.USD.percent_change_1h,
-          percent_change_24h: coin.quote.USD.percent_change_24h,
-          percent_change_7d: coin.quote.USD.percent_change_7d,
-          percent_change_30d: coin.quote.USD.percent_change_30d,
-          percent_change_60d: coin.quote.USD.percent_change_60d,
-          percent_change_90d: coin.quote.USD.percent_change_90d,
-          market_cap: coin.quote.USD.market_cap,
-          market_cap_dominance: coin.quote.USD.market_cap_dominanc,
+          id: coin?.id,
+          name: coin?.name,
+          slug: coin?.slug,
+          symbol: coin?.symbol,
+          price: coin?.quote.USD.price,
+          num_market_pairs: coin?.num_market_pairs,
+          cmc_rank: coin?.cmc_rank,
+          circulating_supply: coin?.circulating_supply,
+          total_supply: coin?.total_supply,
+          last_updated: coin?.last_updated,
+          volume_24h: coin?.quote.USD.volume_24h,
+          volume_change_24h: coin?.quote.USD.volume_change_24h,
+          percent_change_1h: coin?.quote.USD.percent_change_1h,
+          percent_change_24h: coin?.quote.USD.percent_change_24h,
+          percent_change_7d: coin?.quote.USD.percent_change_7d,
+          percent_change_30d: coin?.quote.USD.percent_change_30d,
+          percent_change_60d: coin?.quote.USD.percent_change_60d,
+          percent_change_90d: coin?.quote.USD.percent_change_90d,
+          market_cap: coin?.quote.USD.market_cap,
+          market_cap_dominance: coin?.quote.USD.market_cap_dominanc,
         };
-
         const existingCoin = await Coin.findOne({
           where: { symbol: coin.symbol },
         });
-
         if (existingCoin) {
           await existingCoin.update(coinObject);
         } else {
@@ -70,8 +65,8 @@ const createCryptoCoins = async (req, res) => {
         }
       }
     }
-    if (existingCoinIds.length > 0) {
-      const params = new URLSearchParams({ id: existingCoinIds.join(',') });
+    if (missingImageIds.length > 0) {
+      const params = new URLSearchParams({ id: missingImageIds.join(',') });
       const logoResponse = await fetch(
         `${apiUrl}/v2/cryptocurrency/info?${params}`,
         {
@@ -81,11 +76,9 @@ const createCryptoCoins = async (req, res) => {
         },
       );
       const coinInfoData = await logoResponse.json();
-
-      for (const id of existingCoinIds) {
+      for (const id of missingImageIds) {
         const coin = coinDataArray.find((entry) => entry.id === id);
         const coinInfo = coinInfoData.data[id];
-
         if (coin && coinInfo) {
           const coinObject = {
             id: coin.id,
@@ -110,11 +103,9 @@ const createCryptoCoins = async (req, res) => {
             market_cap: coin.quote.USD.market_cap,
             market_cap_dominance: coin.quote.USD.market_cap_dominanc,
           };
-
           const existingCoin = await Coin.findOne({
             where: { symbol: coin.symbol },
           });
-
           if (existingCoin) {
             await existingCoin.update(coinObject);
           } else {
@@ -123,10 +114,11 @@ const createCryptoCoins = async (req, res) => {
         }
       }
     }
+    const marketData = await Coin.findAll();
     return res.status(200).json({
       status: true,
       msg: 'Data saved successfully',
-      data: coinDataArray,
+      data: marketData,
     });
   } catch (error) {
     console.error('Error fetching cryptocurrency info:', error);
@@ -155,7 +147,7 @@ const getCoinData = async (req, res) => {
   }
 };
 
-const getCoinCategories = async (req, res) => {
+const addCoinCategories = async (req, res) => {
   try {
     const Categories = await Category();
     const apiKey = process.env.COIN_API_KEY;
@@ -165,12 +157,11 @@ const getCoinCategories = async (req, res) => {
         'X-CMC_PRO_API_KEY': apiKey,
       },
     });
-    const dataForCoin = await response.json();
-    var data = dataForCoin.data;
-    let createCategories;
-    data.forEach(async (dataForCoinId) => {
+    const coinsArray = await response.json();
+    var coinsData = coinsArray.data;
+    coinsData.forEach(async (coinId) => {
       const response = await fetch(
-        `${apiUrl}/v1/cryptocurrency/category?id=${dataForCoinId.id}`,
+        `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
         {
           headers: {
             'X-CMC_PRO_API_KEY': apiKey,
@@ -179,26 +170,33 @@ const getCoinCategories = async (req, res) => {
       );
       const coinsData = await response.json();
       const categoriesObject = {
-        categoryId: dataForCoinId.id,
-        name: dataForCoinId.name,
+        categoryId: coinId.id,
+        name: coinId.name,
         coinsId: coinsData?.data?.coins
           ? coinsData?.data?.coins?.map((coin) => coin.id)
           : [],
-        title: dataForCoinId.title,
-        num_tokens: dataForCoinId.num_tokens,
-        avg_price_change: dataForCoinId.avg_price_change,
-        market_cap: dataForCoinId.market_cap,
-        market_cap_change: dataForCoinId.market_cap_change,
-        volume: dataForCoinId.volume,
-        volume_change: dataForCoinId.volume_change,
-        last_updated: dataForCoinId.last_updated,
+        title: coinId.title,
+        num_tokens: coinId.num_tokens,
+        avg_price_change: coinId.avg_price_change,
+        market_cap: coinId.market_cap,
+        market_cap_change: coinId.market_cap_change,
+        volume: coinId.volume,
+        volume_change: coinId.volume_change,
+        last_updated: coinId.last_updated,
       };
-      createCategories = Categories.create(categoriesObject);
+
+      const existingCategory = await Categories.findOne({
+        where: { categoryId: categoriesObject.categoryId },
+      });
+      if (existingCategory) {
+        await existingCategory.update(categoriesObject);
+      } else {
+        await Categories.create(categoriesObject);
+      }
     });
     res.status(200).json({
       status: true,
       msg: 'All categories',
-      data: createCategories,
     });
   } catch (error) {
     console.error('Error retrieving coin data:', error);
@@ -206,32 +204,7 @@ const getCoinCategories = async (req, res) => {
   }
 };
 
-const getByCategoryId = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const apiKey = process.env.COIN_API_KEY;
-    const apiUrl = process.env.API_URL;
-    const response = await fetch(
-      `${apiUrl}/v1/cryptocurrency/category?id=${id}`,
-      {
-        headers: {
-          'X-CMC_PRO_API_KEY': apiKey,
-        },
-      },
-    );
-    const dataForId = await response.json();
-    res.status(200).json({
-      status: true,
-      msg: 'All categories ',
-      data: dataForId,
-    });
-  } catch (error) {
-    console.error('Error retrieving coin data:', error);
-    res.status(500).json({ message: 'Error retrieving coin data' });
-  }
-};
-
-const getCategory = async (req, res) => {
+const getCategories = async (req, res) => {
   try {
     const categoryModel = await Category();
     const allCategory = await categoryModel.findAll();
@@ -255,7 +228,6 @@ const getCategory = async (req, res) => {
 module.exports = {
   createCryptoCoins,
   getCoinData,
-  getCoinCategories,
-  getByCategoryId,
-  getCategory,
+  addCoinCategories,
+  getCategories,
 };

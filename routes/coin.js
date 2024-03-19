@@ -4,8 +4,7 @@ const router = express.Router();
 
 router.post('/addMarketData', coinsController.createCryptoCoins);
 router.get('/cryptoCurrencyInfo', coinsController.getCoinData);
-router.post('/coinsCategories', coinsController.getCoinCategories);
-router.get('/getByCategoryId/:id', coinsController.getByCategoryId);
-router.get('/category', coinsController.getCategory);
+router.post('/addCoinsCategories', coinsController.addCoinCategories);
+router.get('/category',coinsController.getCategories)
 
 module.exports = router;
