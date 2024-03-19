@@ -35,7 +35,7 @@ io.on('connection', async (socket) => {
     socket.emit('InitialTableListing', socketData);
   }
   axios
-    .get(`${process.env.API_URL}/api/coins/cryptoCurrencyInfo`)
+    .get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`)
     .then((response) => {
       socket.emit('InitialTableListing', response.data);
     })
