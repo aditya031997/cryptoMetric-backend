@@ -4,16 +4,21 @@ const jwt = require('jsonwebtoken');
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, provider,
-    provider_id,
-    is_new_coin_alert_enabled,
-    is_increase_alert_enabled,
-    is_decrease_alert_enabled,
-    email_alert_status} = req.body;
+    const {
+      name,
+      email,
+      password,
+      provider,
+      provider_id,
+      is_new_coin_alert_enabled,
+      is_increase_alert_enabled,
+      is_decrease_alert_enabled,
+      email_alert_status,
+    } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({
         status: false,
-        msg: "Provide all required fields",
+        msg: 'Provide all required fields',
       });
     }
     const User = await initializeUserModel();
@@ -21,7 +26,7 @@ const registerUser = async (req, res) => {
     if (existingUser) {
       return res.status(401).json({
         status: false,
-        msg: "User already exists",
+        msg: 'User already exists',
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,42 +36,35 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       provider,
       provider_id,
-    is_new_coin_alert_enabled,
-    is_increase_alert_enabled,
-    is_decrease_alert_enabled,
-    email_alert_status
+      is_new_coin_alert_enabled,
+      is_increase_alert_enabled,
+      is_decrease_alert_enabled,
+      email_alert_status,
     });
-    res.status(201).json({
+    res.status(200).json({
       status: true,
-      msg: "User registered successfully",
+      msg: 'User registered successfully',
       newUser,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       status: false,
       msg: error.message,
     });
   }
-
-
-}
-
-
-
+};
 
 const loginUser = async (req, res) => {
   try {
-    const { email,password } = req.body;
-    if(!email,!password){
-    return res.status(401).json({
-        status:false,
-        msg:"provide all credentials"
-      })
+    const { email, password } = req.body;
+    if ((!email, !password)) {
+      return res.status(401).json({
+        status: false,
+        msg: 'provide all credentials',
+      });
     }
     const User = await initializeUserModel();
     const user = await User.findOne({ where: { email } });
-    console.log('User', user);
     if (!user) {
       return res.status(401).json({ status: false, msg: 'Invalid Email' });
     }
@@ -75,21 +73,21 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       {},
     );
-    const passwordvalid= await bcrypt.compare(password,user.password)
-    if(!passwordvalid){
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
       return res.status(400).json({
-        status:false,
-        msg:"invalid Password"
-      })
+        status: false,
+        msg: 'invalid Password',
+      });
     }
     const response = {
       status: true,
-      data: user.dataValues, 
-      token: token, 
+      data: user.dataValues,
+      token: token,
     };
-    res.status(201).json({
-      status:true,
-      msg:response
+    res.status(200).json({
+      status: true,
+      msg: response,
     });
   } catch (error) {
     console.error(error);
@@ -100,26 +98,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-const updateUserSocketId = async (userId, socketId, res) => {
-  try {
-    const User = await initializeUserModel();
-    const user = await User.findOne({ where: { id: userId } });
-    if (user) {
-      user.socketId = socketId;
-      await user.save();
-      return { success: true };
-    } else {
-      return { success: false, message: 'User not available' }; 
-    }
-  } catch (error) {
-    console.error('Error checking user availability:', error);
-    return { success: false, message: 'Internal server error' };
-  }
-};
-
-
 module.exports = {
   loginUser,
-  updateUserSocketId,
-  registerUser
+  registerUser,
 };

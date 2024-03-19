@@ -1,8 +1,6 @@
-
 const express = require('express');
 const cors = require('cors');
 const auth = require('./routes/auth');
-const { updateUserSocketId } = require('./controllers/auth');
 const dotenv = require('dotenv');
 const coins = require('./routes/coin');
 const { connectToDatabase } = require('./database/db');
@@ -10,7 +8,6 @@ const { Server } = require('socket.io');
 const http = require('http');
 const { startCronJob, socketData } = require('./utils/cronjob');
 const axios = require('axios');
-
 
 dotenv.config();
 const port = process.env.PORT;
@@ -33,9 +30,6 @@ startCronJob(io);
 
 io.on('connection', async (socket) => {
   console.log('Socket Connected');
-  socket.on('saveSocketId', async (userId) => {
-    await updateUserSocketId(userId, socket.id);
-  });
 
   if (socketData) {
     socket.emit('InitialTableListing', socketData);

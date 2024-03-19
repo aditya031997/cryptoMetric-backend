@@ -10,9 +10,9 @@ const createCryptoCoins = async (req, res) => {
       `${apiUrl}/v1/cryptocurrency/listings/latest`,
       {
         headers: {
-          "X-CMC_PRO_API_KEY": apiKey,
+          'X-CMC_PRO_API_KEY': apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -62,11 +62,11 @@ const createCryptoCoins = async (req, res) => {
 
     return res.status(200).json({
       status: true,
-      msg: "Data saved successfully",
-      data: DataOfmarkets,
+      msg: 'Data saved successfully',
+      data: marketData,
     });
   } catch (error) {
-    console.error("Error fetching cryptocurrency info:", error);
+    console.error('Error fetching cryptocurrency info:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -86,17 +86,17 @@ const getCoinData = async (req, res) => {
     if (!allCoins || allCoins.length == 0) {
       return res.status(404).json({
         status: false,
-        msg: "No data found",
+        msg: 'No data found',
       });
     }
     res.status(200).json({
       status: true,
-      msg: "Data retrieved successfully",
+      msg: 'Data retrieved successfully',
       data: allCoins,
     });
   } catch (error) {
-    console.error("Error retrieving coin data:", error);
-    res.status(500).json({ message: "Error retrieving coin data" });
+    console.error('Error retrieving coin data:', error);
+    res.status(500).json({ message: 'Error retrieving coin data' });
   }
 };
 
@@ -107,41 +107,44 @@ const addCoinCategories = async (req, res) => {
     const apiUrl = process.env.API_URL;
     const response = await fetch(`${apiUrl}/v1/cryptocurrency/categories`, {
       headers: {
-        "X-CMC_PRO_API_KEY": apiKey,
+        'X-CMC_PRO_API_KEY': apiKey,
       },
     });
-    const dataForcoin = await response.json();
-    var coindata = dataForcoin.data;
-    let createCategories
-    coindata.forEach(async(dataForcoinId) => {
+    const coinsArray = await response.json();
+    var coinsData = coinsArray.data;
+    coinsData.forEach(async (coinId) => {
       const response = await fetch(
-        `${apiUrl}/v1/cryptocurrency/category?id=${dataForcoinId.id}`,
+        `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
         {
           headers: {
-            "X-CMC_PRO_API_KEY": apiKey,
+            'X-CMC_PRO_API_KEY': apiKey,
           },
-        }
+        },
       );
       const coinsData = await response.json();
       const categoriesObject = {
-        categoryId: dataForcoinId.id,
-        name: dataForcoinId.name,
-        coinsId:coinsData?.data?.coins ? coinsData?.data?.coins?.map(coin => coin.id) : [],
-        title: dataForcoinId.title,
-        num_tokens: dataForcoinId.num_tokens,
-        avg_price_change: dataForcoinId.avg_price_change,
-        market_cap: dataForcoinId.market_cap,
-        market_cap_change: dataForcoinId.market_cap_change,
-        volume: dataForcoinId.volume,
-        volume_change: dataForcoinId.volume_change,
-        last_updated: dataForcoinId.last_updated,
+        categoryId: coinId.id,
+        name: coinId.name,
+        coinsId: coinsData?.data?.coins
+          ? coinsData?.data?.coins?.map((coin) => coin.id)
+          : [],
+        title: coinId.title,
+        num_tokens: coinId.num_tokens,
+        avg_price_change: coinId.avg_price_change,
+        market_cap: coinId.market_cap,
+        market_cap_change: coinId.market_cap_change,
+        volume: coinId.volume,
+        volume_change: coinId.volume_change,
+        last_updated: coinId.last_updated,
       };
 
-      const existingCategory = await Categories.findOne({where :{categoryId:categoriesObject.categoryId}})
-      if(existingCategory){
-        await existingCategory.update(categoriesObject)
-      }else{
-         await Categories.create(categoriesObject);
+      const existingCategory = await Categories.findOne({
+        where: { categoryId: categoriesObject.categoryId },
+      });
+      if (existingCategory) {
+        await existingCategory.update(categoriesObject);
+      } else {
+        await Categories.create(categoriesObject);
       }
     });
     res.status(200).json({
@@ -150,8 +153,8 @@ const addCoinCategories = async (req, res) => {
       data: createCategories,
     });
   } catch (error) {
-    console.error("Error retrieving coin data:", error);
-    res.status(500).json({ message: "Error retrieving coin data" });
+    console.error('Error retrieving coin data:', error);
+    res.status(500).json({ message: 'Error retrieving coin data' });
   }
 };
 
@@ -162,20 +165,19 @@ const getCategories = async (req, res) => {
     if (!allCategory || allCategory.length == 0) {
       return res.status(404).json({
         status: false,
-        msg: "No data found",
+        msg: 'No data found',
       });
     }
     res.status(200).json({
       status: true,
-      msg: "Data retrieved successfully",
+      msg: 'Data retrieved successfully',
       data: allCategory,
     });
   } catch (error) {
-    console.error("Error retrieving coin data:", error);
-    res.status(500).json({ message: "Error retrieving coin data" });
+    console.error('Error retrieving coin data:', error);
+    res.status(500).json({ message: 'Error retrieving coin data' });
   }
-}
-
+};
 
 
 
