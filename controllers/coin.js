@@ -63,7 +63,7 @@ const createCryptoCoins = async (req, res) => {
     return res.status(200).json({
       status: true,
       msg: 'Data saved successfully',
-      data: marketData,
+  
     });
   } catch (error) {
     console.error('Error fetching cryptocurrency info:', error);
