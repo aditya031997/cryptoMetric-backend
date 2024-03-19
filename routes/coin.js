@@ -7,4 +7,5 @@ router.get('/cryptoCurrencyInfo', coinsController.getCoinData);
 router.post('/addcoinsCategories', coinsController.addCoinCategories);
 router.get('/category',coinsController.getCategories)
 
+
 module.exports = router;
