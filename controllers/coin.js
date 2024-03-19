@@ -13,13 +13,12 @@ const createCryptoCoins = async (req, res) => {
         },
       },
     );
-
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response?.status}`);
     }
     const coinData = await response.json();
     const coindataArray = coinData.data || [];
-
+    const allCoins=await  Coin.findAll()
     for (const coin of coindataArray) {
       const coinObject = {
         id: coin?.id,
@@ -43,11 +42,9 @@ const createCryptoCoins = async (req, res) => {
         market_cap: coin?.quote.USD.market_cap,
         market_cap_dominance: coin?.quote.USD.market_cap_dominance,
       };
-      
       const existingCoin = await Coin.findOne({
         where: { symbol: coin.symbol },
       });
-
       if (existingCoin) {
         await existingCoin.update(coinObject);
       } else {
@@ -56,7 +53,7 @@ const createCryptoCoins = async (req, res) => {
     }
 return res.status(200).json({
       status: true,
-      msg: 'Data saved successfully',
+      msg: 'Data saved successfully',allCoins
   
     });
   } catch (error) {
@@ -64,8 +61,6 @@ return res.status(200).json({
     res.status(500).json({ error: error.message });
   }
 };
-
-
 
 const getCoinData = async (req, res) => {
   try {
@@ -166,10 +161,6 @@ const getCategories = async (req, res) => {
     res.status(500).json({ message: 'Error retrieving coin data' });
   }
 };
-
-
-
-
 
 
 module.exports = {
