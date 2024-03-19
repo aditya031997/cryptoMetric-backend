@@ -5,7 +5,6 @@ const createCryptoCoins = async (req, res) => {
     const Coin = await CoinMarket();
     const apiKey = process.env.COIN_API_KEY;
     const apiUrl = process.env.API_URL;
-    
     const response = await fetch(
       `${apiUrl}/v1/cryptocurrency/listings/latest`,
       {
@@ -18,11 +17,9 @@ const createCryptoCoins = async (req, res) => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response?.status}`);
     }
-
     const coinData = await response.json();
     const coindataArray = coinData.data || [];
-    const allcoinIds = coindataArray.map((entry) => entry.id);
-    const allcoinData = await Coin.findAll();
+
     for (const coin of coindataArray) {
       const coinObject = {
         id: coin?.id,
@@ -57,10 +54,7 @@ const createCryptoCoins = async (req, res) => {
         await Coin.create(coinObject);
       }
     }
-
-    const DataOfmarkets = await Coin.findAll();
-
-    return res.status(200).json({
+return res.status(200).json({
       status: true,
       msg: 'Data saved successfully',
   
@@ -70,12 +64,6 @@ const createCryptoCoins = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
-
-
-
 
 
 
@@ -178,6 +166,9 @@ const getCategories = async (req, res) => {
     res.status(500).json({ message: 'Error retrieving coin data' });
   }
 };
+
+
+
 
 
 
