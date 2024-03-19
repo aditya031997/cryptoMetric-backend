@@ -1,11 +1,11 @@
-const CoinMarket = require('../models/coins');
-const Category = require('../models/category');
-
+const CoinMarket = require("../models/coins");
+const Category = require("../models/category");
 const createCryptoCoins = async (req, res) => {
   try {
     const Coin = await CoinMarket();
     const apiKey = process.env.COIN_API_KEY;
     const apiUrl = process.env.API_URL;
+    
     const response = await fetch(
       `${apiUrl}/v1/cryptocurrency/listings/latest`,
       {
@@ -14,117 +14,70 @@ const createCryptoCoins = async (req, res) => {
         },
       },
     );
+
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response?.status}`);
     }
+
     const coinData = await response.json();
-    const coinDataArray = coinData.data || [];
-    const allCoinIds = coinDataArray.map((entry) => entry.id);
-    const allCoinData = await Coin.findAll();
-    const coinDataBaseIds = allCoinData.map((entry) => entry.id);
-    const missingImageIds = allCoinIds.filter(
-      (id) => !coinDataBaseIds.includes(id),
-    );
-    const existingCoinIds = allCoinIds.filter((id) =>
-      coinDataBaseIds.includes(id),
-    );
-    if (existingCoinIds.length > 0) {
-      const existingCoinIdsImage = coinDataArray.filter(
-        (coin) => existingCoinIds.includes(coin.id) && !coin.logo,
-      );
-      for (const coin of existingCoinIdsImage) {
-        const coinObject = {
-          id: coin?.id,
-          name: coin?.name,
-          slug: coin?.slug,
-          symbol: coin?.symbol,
-          price: coin?.quote.USD.price,
-          num_market_pairs: coin?.num_market_pairs,
-          cmc_rank: coin?.cmc_rank,
-          circulating_supply: coin?.circulating_supply,
-          total_supply: coin?.total_supply,
-          last_updated: coin?.last_updated,
-          volume_24h: coin?.quote.USD.volume_24h,
-          volume_change_24h: coin?.quote.USD.volume_change_24h,
-          percent_change_1h: coin?.quote.USD.percent_change_1h,
-          percent_change_24h: coin?.quote.USD.percent_change_24h,
-          percent_change_7d: coin?.quote.USD.percent_change_7d,
-          percent_change_30d: coin?.quote.USD.percent_change_30d,
-          percent_change_60d: coin?.quote.USD.percent_change_60d,
-          percent_change_90d: coin?.quote.USD.percent_change_90d,
-          market_cap: coin?.quote.USD.market_cap,
-          market_cap_dominance: coin?.quote.USD.market_cap_dominanc,
-        };
-        const existingCoin = await Coin.findOne({
-          where: { symbol: coin.symbol },
-        });
-        if (existingCoin) {
-          await existingCoin.update(coinObject);
-        } else {
-          await Coin.create(coinObject);
-        }
+    const coindataArray = coinData.data || [];
+    const allcoinIds = coindataArray.map((entry) => entry.id);
+    const allcoinData = await Coin.findAll();
+    for (const coin of coindataArray) {
+      const coinObject = {
+        id: coin?.id,
+        name: coin?.name,
+        slug: coin?.slug,
+        symbol: coin?.symbol,
+        price: coin?.quote.USD.price,
+        num_market_pairs: coin?.num_market_pairs,
+        cmc_rank: coin?.cmc_rank,
+        circulating_supply: coin?.circulating_supply,
+        total_supply: coin?.total_supply,
+        last_updated: coin?.last_updated,
+        volume_24h: coin?.quote.USD.volume_24h,
+        volume_change_24h: coin?.quote.USD.volume_change_24h,
+        percent_change_1h: coin?.quote.USD.percent_change_1h,
+        percent_change_24h: coin?.quote.USD.percent_change_24h,
+        percent_change_7d: coin?.quote.USD.percent_change_7d,
+        percent_change_30d: coin?.quote.USD.percent_change_30d,
+        percent_change_60d: coin?.quote.USD.percent_change_60d,
+        percent_change_90d: coin?.quote.USD.percent_change_90d,
+        market_cap: coin?.quote.USD.market_cap,
+        market_cap_dominance: coin?.quote.USD.market_cap_dominance,
+      };
+      
+      const existingCoin = await Coin.findOne({
+        where: { symbol: coin.symbol },
+      });
+
+      if (existingCoin) {
+        await existingCoin.update(coinObject);
+      } else {
+        await Coin.create(coinObject);
       }
     }
-    if (missingImageIds.length > 0) {
-      const params = new URLSearchParams({ id: missingImageIds.join(',') });
-      const logoResponse = await fetch(
-        `${apiUrl}/v2/cryptocurrency/info?${params}`,
-        {
-          headers: {
-            'X-CMC_PRO_API_KEY': apiKey,
-          },
-        },
-      );
-      const coinInfoData = await logoResponse.json();
-      for (const id of missingImageIds) {
-        const coin = coinDataArray.find((entry) => entry.id === id);
-        const coinInfo = coinInfoData.data[id];
-        if (coin && coinInfo) {
-          const coinObject = {
-            id: coin.id,
-            name: coin.name,
-            slug: coin.slug,
-            symbol: coin.symbol,
-            image: coinInfo.logo || null,
-            price: coin.quote.USD.price,
-            num_market_pairs: coin.num_market_pairs,
-            cmc_rank: coin.cmc_rank,
-            circulating_supply: coin.circulating_supply,
-            total_supply: coin.total_supply,
-            last_updated: coin.last_updated,
-            volume_24h: coin.quote.USD.volume_24h,
-            volume_change_24h: coin.quote.USD.volume_change_24h,
-            percent_change_1h: coin.quote.USD.percent_change_1h,
-            percent_change_24h: coin.quote.USD.percent_change_24h,
-            percent_change_7d: coin.quote.USD.percent_change_7d,
-            percent_change_30d: coin.quote.USD.percent_change_30d,
-            percent_change_60d: coin.quote.USD.percent_change_60d,
-            percent_change_90d: coin.quote.USD.percent_change_90d,
-            market_cap: coin.quote.USD.market_cap,
-            market_cap_dominance: coin.quote.USD.market_cap_dominanc,
-          };
-          const existingCoin = await Coin.findOne({
-            where: { symbol: coin.symbol },
-          });
-          if (existingCoin) {
-            await existingCoin.update(coinObject);
-          } else {
-            await Coin.create(coinObject);
-          }
-        }
-      }
-    }
-    const marketData = await Coin.findAll();
+
+    const DataOfmarkets = await Coin.findAll();
+
     return res.status(200).json({
       status: true,
       msg: 'Data saved successfully',
-      data: marketData,
+  
     });
   } catch (error) {
     console.error('Error fetching cryptocurrency info:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+
+
+
+
+
 
 const getCoinData = async (req, res) => {
   try {
@@ -196,7 +149,8 @@ const addCoinCategories = async (req, res) => {
     });
     res.status(200).json({
       status: true,
-      msg: 'All categories',
+      msg: "Categories Added Successfully ",
+      data: createCategories,
     });
   } catch (error) {
     console.error('Error retrieving coin data:', error);
@@ -225,9 +179,12 @@ const getCategories = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   createCryptoCoins,
   getCoinData,
   addCoinCategories,
-  getCategories,
+  getCategories
+  
 };
