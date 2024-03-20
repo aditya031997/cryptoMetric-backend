@@ -130,9 +130,12 @@ const addCoinCategories = async (req, res) => {
         await Categories.create(categoriesObject);
       }
     });
+    const allCategory = await Categories.findAll();
+
     res.status(200).json({
       status: true,
-      msg: "Categories Added Successfully ",
+      msg:"Categories Added Successfully ",
+      data: allCategory
      
     });
   } catch (error) {
