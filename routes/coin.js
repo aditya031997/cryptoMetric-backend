@@ -9,3 +9,4 @@ router.get('/category',coinsController.getCategories)
 
 
 module.exports = router;
+

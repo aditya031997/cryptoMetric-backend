@@ -13,9 +13,9 @@ const createCryptoCoins = async (req, res) => {
         },
       },
     );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response?.status}`);
-    }
+    // if (!response.ok) {
+    //   throw new Error(`HTTP error! Status: ${response?.status}`);
+    // }
     const coinData = await response.json();
     const coindataArray = coinData.data || [];
     const allCoins=await  Coin.findAll()
@@ -94,8 +94,8 @@ const addCoinCategories = async (req, res) => {
       },
     });
     const coinsArray = await response.json();
-    var coinsData = coinsArray.data;
-    coinsData.forEach(async (coinId) => {
+    var coinsData = coinsArray?.data;
+    coinsData?.forEach(async (coinId) => {
       const response = await fetch(
         `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
         {
@@ -133,7 +133,7 @@ const addCoinCategories = async (req, res) => {
     res.status(200).json({
       status: true,
       msg: "Categories Added Successfully ",
-      data: createCategories,
+     
     });
   } catch (error) {
     console.error('Error retrieving coin data:', error);
@@ -161,7 +161,6 @@ const getCategories = async (req, res) => {
     res.status(500).json({ message: 'Error retrieving coin data' });
   }
 };
-
 
 module.exports = {
   createCryptoCoins,
