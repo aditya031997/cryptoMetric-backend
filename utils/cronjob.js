@@ -44,7 +44,6 @@ const fetchData = async () => {
 
 const startCronJob = (io) => {
   try {
-    //the expression should be '0 0 * * *'. This expression runs at midnight every day.
     const job = new cron.CronJob('0 0 * * *', async () => {
       await fetchData();
       if (io) {
