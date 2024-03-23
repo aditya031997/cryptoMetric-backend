@@ -159,7 +159,7 @@ const addCoinCategories = async (req, res) => {
     });
     const coinsArray = await response.json();
     var coinsData = coinsArray.data;
-    coinsData.forEach(async (coinId) => {
+    coinsData?.forEach(async (coinId) => {
       const response = await fetch(
         `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
         {
