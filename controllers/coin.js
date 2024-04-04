@@ -1,5 +1,5 @@
-const CoinMarket = require("../models/coins");
-const Category = require("../models/category");
+const CoinMarket = require('../models/coins');
+const Category = require('../models/category');
 const createCryptoCoins = async (req, res) => {
   try {
     const Coin = await CoinMarket();
@@ -10,10 +10,12 @@ const createCryptoCoins = async (req, res) => {
       {
         headers: {
           'X-CMC_PRO_API_KEY': apiKey,
-        }, }, );
+        },
+      },
+    );
     const coinData = await response.json();
     const coindataArray = coinData.data || [];
-    const allCoins=await  Coin.findAll()
+    const allCoins = await Coin.findAll();
     for (const coin of coindataArray) {
       const coinObject = {
         id: coin?.id,
@@ -46,10 +48,10 @@ const createCryptoCoins = async (req, res) => {
         await Coin.create(coinObject);
       }
     }
-return res.status(200).json({
+    return res.status(200).json({
       status: true,
-      msg: 'Data saved successfully',allCoins
-  
+      msg: 'Data saved successfully',
+      allCoins,
     });
   } catch (error) {
     console.error('Error fetching cryptocurrency info:', error);
@@ -129,9 +131,8 @@ const addCoinCategories = async (req, res) => {
 
     res.status(200).json({
       status: true,
-      msg:"Categories Added Successfully ",
-      data: allCategory
-     
+      msg: 'Categories Added Successfully ',
+      data: allCategory,
     });
   } catch (error) {
     console.error('Error retrieving coin data:', error);
@@ -164,6 +165,5 @@ module.exports = {
   createCryptoCoins,
   getCoinData,
   addCoinCategories,
-  getCategories
-  
+  getCategories,
 };
