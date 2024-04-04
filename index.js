@@ -9,6 +9,7 @@ const http = require('http');
 const { startCronJob, socketData } = require('./utils/cronjob');
 const axios = require('axios');
 
+
 dotenv.config();
 const port = process.env.PORT;
 const app = express();
@@ -21,6 +22,7 @@ const io = new Server(server, {
 
 app.use(express.json());
 app.use(cors());
+
 
 app.use('/api', auth);
 app.use('/api/coins', coins);
@@ -50,3 +52,5 @@ io.on('connection', async (socket) => {
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+

@@ -10,12 +10,7 @@ const createCryptoCoins = async (req, res) => {
       {
         headers: {
           'X-CMC_PRO_API_KEY': apiKey,
-        },
-      },
-    );
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! Status: ${response?.status}`);
-    // }
+        }, }, );
     const coinData = await response.json();
     const coindataArray = coinData.data || [];
     const allCoins=await  Coin.findAll()
