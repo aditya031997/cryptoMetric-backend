@@ -9,11 +9,13 @@ const createCryptoCoins = async (req, res) => {
       `${apiUrl}/v1/cryptocurrency/listings/latest`,
       {
         headers: {
-          'X-CMC_PRO_API_KEY': apiKey,
-        }, }, );
+          "X-CMC_PRO_API_KEY": apiKey,
+        },
+      }
+    );
     const coinData = await response.json();
     const coindataArray = coinData.data || [];
-    const allCoins=await  Coin.findAll()
+    const allCoins = await Coin.findAll();
     for (const coin of coindataArray) {
       const coinObject = {
         id: coin?.id,
@@ -46,13 +48,13 @@ const createCryptoCoins = async (req, res) => {
         await Coin.create(coinObject);
       }
     }
-return res.status(200).json({
+    return res.status(200).json({
       status: true,
-      msg: 'Data saved successfully',allCoins
-  
+      msg: "Data saved successfully",
+      allCoins,
     });
   } catch (error) {
-    console.error('Error fetching cryptocurrency info:', error);
+    console.error("Error fetching cryptocurrency info:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -64,17 +66,17 @@ const getCoinData = async (req, res) => {
     if (!allCoins || allCoins.length == 0) {
       return res.status(404).json({
         status: false,
-        msg: 'No data found',
+        msg: "No data found",
       });
     }
     res.status(200).json({
       status: true,
-      msg: 'Data retrieved successfully',
+      msg: "Data retrieved successfully",
       data: allCoins,
     });
   } catch (error) {
-    console.error('Error retrieving coin data:', error);
-    res.status(500).json({ message: 'Error retrieving coin data' });
+    console.error("Error retrieving coin data:", error);
+    res.status(500).json({ message: "Error retrieving coin data" });
   }
 };
 
@@ -85,7 +87,7 @@ const addCoinCategories = async (req, res) => {
     const apiUrl = process.env.API_URL;
     const response = await fetch(`${apiUrl}/v1/cryptocurrency/categories`, {
       headers: {
-        'X-CMC_PRO_API_KEY': apiKey,
+        "X-CMC_PRO_API_KEY": apiKey,
       },
     });
     const coinsArray = await response.json();
@@ -95,9 +97,9 @@ const addCoinCategories = async (req, res) => {
         `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
         {
           headers: {
-            'X-CMC_PRO_API_KEY': apiKey,
+            "X-CMC_PRO_API_KEY": apiKey,
           },
-        },
+        }
       );
       const coinsData = await response.json();
       const categoriesObject = {
@@ -129,13 +131,12 @@ const addCoinCategories = async (req, res) => {
 
     res.status(200).json({
       status: true,
-      msg:"Categories Added Successfully ",
-      data: allCategory
-     
+      msg: "Categories Added Successfully ",
+      data: allCategory,
     });
   } catch (error) {
-    console.error('Error retrieving coin data:', error);
-    res.status(500).json({ message: 'Error retrieving coin data' });
+    console.error("Error retrieving coin data:", error);
+    res.status(500).json({ message: "Error retrieving coin data" });
   }
 };
 
@@ -146,17 +147,17 @@ const getCategories = async (req, res) => {
     if (!allCategory || allCategory.length == 0) {
       return res.status(404).json({
         status: false,
-        msg: 'No data found',
+        msg: "No data found",
       });
     }
     res.status(200).json({
       status: true,
-      msg: 'Data retrieved successfully',
+      msg: "Data retrieved successfully",
       data: allCategory,
     });
   } catch (error) {
-    console.error('Error retrieving coin data:', error);
-    res.status(500).json({ message: 'Error retrieving coin data' });
+    console.error("Error retrieving coin data:", error);
+    res.status(500).json({ message: "Error retrieving coin data" });
   }
 };
 
@@ -164,6 +165,5 @@ module.exports = {
   createCryptoCoins,
   getCoinData,
   addCoinCategories,
-  getCategories
-  
+  getCategories,
 };

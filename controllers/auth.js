@@ -60,11 +60,11 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if ((!email, !password)) {
+    const { email } = req.body;
+    if (!email) {
       return res.status(401).json({
         status: false,
-        msg: 'provide all credentials',
+        msg: 'Please provide email',
       });
     }
     const User = await initializeUserModel();
@@ -77,13 +77,6 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       {},
     );
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return res.status(400).json({
-        status: false,
-        msg: 'invalid Password',
-      });
-    }
     const response = {
       status: true,
       data: user.dataValues,
@@ -102,19 +95,6 @@ const loginUser = async (req, res) => {
     });
   }
 };
-
-
-
-
- 
-
-
-
-
-
-
-
-
 
 const getUser=async(req,res)=>{
  try {
