@@ -1,5 +1,5 @@
-const CoinMarket = require("../models/coins");
-const Category = require("../models/category");
+const CoinMarket = require('../models/coins');
+const Category = require('../models/category');
 const createCryptoCoins = async (req, res) => {
   try {
     const Coin = await CoinMarket();
