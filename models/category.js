@@ -47,6 +47,10 @@ async function initializeCategoryModel() {
     last_updated: {
       type: DataTypes.STRING,
     },
+  }, {
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   });
   await sequelize.sync({ alter: true });
 

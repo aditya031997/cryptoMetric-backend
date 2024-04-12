@@ -67,6 +67,10 @@ async function initializeUserModel() {
     market_cap: {
       type: DataTypes.STRING,
     },
+  }, {
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   });
   await sequelize.sync({ alter: true });
 

@@ -3,7 +3,6 @@ const { connectToDatabase } = require('../database/db');
 
 async function initializeUserModel() {
   const sequelize = await connectToDatabase();
-
   const User = sequelize.define('users', {
     id: {
       type: DataTypes.INTEGER,
@@ -15,7 +14,7 @@ async function initializeUserModel() {
     },
     email: {
       type: DataTypes.STRING,
-      unique: true,
+      // unique: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -23,30 +22,31 @@ async function initializeUserModel() {
     socketId: {
       type: DataTypes.STRING,
     },
-    provider:{
+    provider: {
       type: DataTypes.STRING,
     },
-    provider_id:{
-    type: DataTypes.STRING,
-    },
-    is_new_coin_alert_enabled:{
-      type: DataTypes.STRING,
-
-    },
-    is_increase_alert_enabled:{
+    provider_id: {
       type: DataTypes.STRING,
     },
-    is_decrease_alert_enabled:{
+    is_new_coin_alert_enabled: {
       type: DataTypes.STRING,
     },
-    email_alert_status:{
+    is_increase_alert_enabled: {
       type: DataTypes.STRING,
-
-    }
-    
+    },
+    is_decrease_alert_enabled: {
+      type: DataTypes.STRING,
+    },
+    email_alert_status: {
+      type: DataTypes.STRING,
+    },
+  }, {
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   });
-  await sequelize.sync({ alter:true });
 
+  await sequelize.sync({ alter: true });
   return User;
 }
 
