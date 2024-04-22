@@ -85,14 +85,18 @@ const addCoinCategories = async (req, res) => {
     const Categories = await Category();
     const apiKey = process.env.COIN_API_KEY;
     const apiUrl = process.env.API_URL;
+
     const response = await fetch(`${apiUrl}/v1/cryptocurrency/categories`, {
       headers: {
         "X-CMC_PRO_API_KEY": apiKey,
       },
     });
     const coinsArray = await response.json();
-    var coinsData = coinsArray?.data;
-    coinsData?.forEach(async (coinId) => {
+    const coinsData = coinsArray?.data;
+
+    const categoriesPromises = [];
+
+    for (const coinId of coinsData) {
       const response = await fetch(
         `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
         {
@@ -102,12 +106,11 @@ const addCoinCategories = async (req, res) => {
         }
       );
       const coinsData = await response.json();
+
       const categoriesObject = {
         categoryId: coinId.id,
         name: coinId.name,
-        coinsId: coinsData?.data?.coins
-          ? coinsData?.data?.coins?.map((coin) => coin.id)
-          : [],
+        coinsId: coinsData?.data?.coins ? coinsData?.data?.coins?.map((coin) => coin.id) : [0],
         title: coinId.title,
         num_tokens: coinId.num_tokens,
         avg_price_change: coinId.avg_price_change,
@@ -121,14 +124,17 @@ const addCoinCategories = async (req, res) => {
       const existingCategory = await Categories.findOne({
         where: { categoryId: categoriesObject.categoryId },
       });
-      if (existingCategory) {
-        await existingCategory.update(categoriesObject);
-      } else {
-        await Categories.create(categoriesObject);
-      }
-    });
-    const allCategory = await Categories.findAll();
 
+      if (existingCategory) {
+        categoriesPromises.push(existingCategory.update(categoriesObject));
+      } else {
+        categoriesPromises.push(Categories.create(categoriesObject));
+      }
+    }
+
+    await Promise.all(categoriesPromises);
+
+    const allCategory = await Categories.findAll();
     res.status(200).json({
       status: true,
       msg: "Categories Added Successfully ",
