@@ -8,6 +8,8 @@ const { Server } = require('socket.io');
 const http = require('http');
 const { startCronJob, socketData } = require('./utils/cronjob');
 const axios = require('axios');
+const swap = require('./routes/swap-token');
+
 
 dotenv.config();
 const port = process.env.PORT;
@@ -24,6 +26,7 @@ app.use(cors());
 
 app.use('/api', auth);
 app.use('/api/coins', coins);
+app.use('/tokens', swap);
 
 connectToDatabase();
 startCronJob(io);
