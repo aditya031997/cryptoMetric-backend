@@ -1,6 +1,4 @@
 const axios = require("axios");
-const ethers = require('ethers')
-
 
 async function tokenprice(req, res) {
     const { query } = req;
