@@ -86,58 +86,67 @@ const addCoinCategories = async (req, res) => {
     const apiKey = process.env.COIN_API_KEY;
     const apiUrl = process.env.API_URL;
 
+    // Fetch the list of all categories
     const response = await fetch(`${apiUrl}/v1/cryptocurrency/categories`, {
       headers: {
         "X-CMC_PRO_API_KEY": apiKey,
       },
     });
-    const coinsArray = await response.json();
-    const coinsData = coinsArray?.data;
 
-    const categoriesPromises = [];
+    const categoriesResponse = await response.json();
+    const categoriesData = categoriesResponse?.data;
 
-    for (const coinId of coinsData) {
-      const response = await fetch(
-        `${apiUrl}/v1/cryptocurrency/category?id=${coinId.id}`,
+    if (!categoriesData || categoriesData.length === 0) {
+      throw new Error("No categories found in API response");
+    }
+
+    const categoriesPromises = categoriesData.map(async (category) => {
+      const detailResponse = await fetch(
+        `${apiUrl}/v1/cryptocurrency/category?id=${category.id}`,
         {
           headers: {
             "X-CMC_PRO_API_KEY": apiKey,
           },
         }
       );
-      const coinsData = await response.json();
+      const detailData = await detailResponse.json();
 
-      const categoriesObject = {
-        categoryId: coinId.id,
-        name: coinId.name,
-        coinsId: coinsData?.data?.coins ? coinsData?.data?.coins?.map((coin) => coin.id) : [0],
-        title: coinId.title,
-        num_tokens: coinId.num_tokens,
-        avg_price_change: coinId.avg_price_change,
-        market_cap: coinId.market_cap,
-        market_cap_change: coinId.market_cap_change,
-        volume: coinId.volume,
-        volume_change: coinId.volume_change,
-        last_updated: coinId.last_updated,
-      };
+      const coins = detailData?.data?.coins ? detailData.data.coins.map(coin => coin.id) : [0];
 
       const existingCategory = await Categories.findOne({
-        where: { categoryId: categoriesObject.categoryId },
+        where: { categoryId: category.id },
       });
 
       if (existingCategory) {
-        categoriesPromises.push(existingCategory.update(categoriesObject));
+        // Update coinsId if it was initially 0 and now has new coin IDs
+        if (existingCategory.coinsId.length === 1 && existingCategory.coinsId[0] === 0 && coins.length > 1) {
+          return existingCategory.update({ coinsId: coins });
+        }
       } else {
-        categoriesPromises.push(Categories.create(categoriesObject));
+        // Create a new category object if it doesn't exist
+        const categoryObject = {
+          categoryId: category.id,
+          name: category.name,
+          coinsId: coins,
+          title: category.title,
+          num_tokens: category.num_tokens,
+          avg_price_change: category.avg_price_change,
+          market_cap: category.market_cap,
+          market_cap_change: category.market_cap_change,
+          volume: category.volume,
+          volume_change: category.volume_change,
+          last_updated: category.last_updated,
+        };
+        return Categories.create(categoryObject);
       }
-    }
+    });
 
     await Promise.all(categoriesPromises);
 
     const allCategory = await Categories.findAll();
     res.status(200).json({
       status: true,
-      msg: "Categories Added Successfully ",
+      msg: "Categories Updated Successfully",
       data: allCategory,
     });
   } catch (error) {
@@ -145,6 +154,8 @@ const addCoinCategories = async (req, res) => {
     res.status(500).json({ message: "Error retrieving coin data" });
   }
 };
+
+
 
 const getCategories = async (req, res) => {
   try {
