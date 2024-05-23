@@ -18,7 +18,7 @@ async function tokenprice(req, res) {
     return res.status(200).json(usdPrices);
 }
 
-async function swager(req, res) {
+async function swagger(req, res) {
     const { chain } = req.query;
     const url = `https://api.1inch.dev/swap/v6.0/${chain}/tokens`;
     const config = {
@@ -27,6 +27,35 @@ async function swager(req, res) {
         },
     };
 
+    try {
+        const response = await axios.get(url, config);
+        const responseData = response.data;
+
+        res.status(200).json({
+            status: true,
+            msg: responseData,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: false,
+            msg: "Internal server error",
+        });
+    }
+}
+
+async function onwInchToken(req, res) {
+    const { chain, query } = req.query;
+    const url = `https://api.1inch.dev/token/v1.2/${chain}/search`;
+    const config = {
+        headers: {
+            "Authorization": "Bearer 9MsoPLjRdeMTEI8v9uD5Ij3Gzwm7HmBr"
+        },
+        params: {
+            "query": query,
+            "only_positive_rating": "true"
+        }
+    };
     try {
         const response = await axios.get(url, config);
         const responseData = response.data;
@@ -79,7 +108,7 @@ async function convert(req, res) {
 
 async function allowance(req, res) {
     const { tokenAddress, walletAddress } = req.query;
-    const url = `https://api.1inch.dev/swap/v6.0/137/approve/allowance`;
+    const url = `https://api.1inch.dev/swap/v6.0/1/approve/allowance`;
     try {
         const response = await axios.get(url, {
             headers: {
@@ -93,13 +122,13 @@ async function allowance(req, res) {
 
         res.json(response.data);
     } catch (error) {
-        res
-            .status(500)
+        console.log(error, "errorro")
+        res.status(500)
             .json({ message: "Error fetching allowance", details: error.message });
     }
 };
 async function approveTransaction(req, res) {
-    const { tokenAddress,chain } = req.query;
+    const { tokenAddress, chain } = req.query;
     let config = {
         method: "get",
         maxBodyLength: Infinity,
@@ -123,7 +152,7 @@ async function approveTransaction(req, res) {
 
 
 async function swapper(req, res) {
-    const { src, dst, amount, from, slippage, gas,chain, gasPrice } = req.body;
+    const { src, dst, amount, from, slippage, gas, chain, gasPrice } = req.body;
     const url = `https://api.1inch.dev/swap/v6.0/${chain}/swap`;
 
     const config = {
@@ -155,10 +184,11 @@ async function swapper(req, res) {
 
 // Export the middleware functions
 module.exports = {
-    swager,
+    swagger,
     convert,
     swapper,
     tokenprice,
     allowance,
     approveTransaction,
+    onwInchToken
 };
