@@ -42,8 +42,6 @@ async function initializeUserModel() {
     },
   }, {
     timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
   });
 
   await sequelize.sync({ alter: true });
