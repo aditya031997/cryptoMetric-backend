@@ -40,6 +40,9 @@ async function initializeUserModel() {
     email_alert_status: {
       type: DataTypes.STRING,
     },
+    chart_theme:{
+      type:DataTypes.TINYINT
+    }
   }, {
     timestamps: true,
     createdAt: 'created_at',
