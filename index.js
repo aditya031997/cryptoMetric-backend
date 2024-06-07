@@ -9,10 +9,11 @@ const http = require('http');
 const { startCronJob, socketData } = require('./utils/cronjob');
 const axios = require('axios');
 const swap = require('./routes/swap-token');
-
+const supply = require('./routes/supply-distribution');
 
 dotenv.config();
-const port = process.env.PORT;
+
+const port = process.env.PORT || 3000; // Add a default port
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -24,11 +25,16 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors());
 
-app.use('/api', auth);
+// Define routes
+app.use('/api/auth', auth);
 app.use('/api/coins', coins);
 app.use('/tokens', swap);
+app.use('/api/supply', supply);
 
+// Connect to the database
 connectToDatabase();
+
+// Start cron job
 startCronJob(io);
 
 io.on('connection', async (socket) => {
@@ -37,14 +43,14 @@ io.on('connection', async (socket) => {
   if (socketData) {
     socket.emit('InitialTableListing', socketData);
   }
-  axios
-    .get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`)
-    .then((response) => {
-      socket.emit('InitialTableListing', response.data);
-    })
-    .catch((error) => {
-      console.error(error.response.data);
-    });
+
+  try {
+    const response = await axios.get(`${process.env.SERVER_URL}/api/coins/cryptoCurrencyInfo`); // Adjusted the URL
+    socket.emit('InitialTableListing', response.data);
+  } catch (error) {
+    console.error('Error fetching initial data:', error.response ? error.response.data : error.message);
+  }
+
   socket.on('disconnect', () => {
     console.log('Client disconnected');
   });
