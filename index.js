@@ -29,7 +29,7 @@ app.use(cors());
 app.use('/api/auth', auth);
 app.use('/api/coins', coins);
 app.use('/tokens', swap);
-app.use('/api/supply', supply);
+app.use('/supply', supply);
 
 // Connect to the database
 connectToDatabase();
