@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(cors());
 
 // Define routes
-app.use('/api/auth', auth);
+app.use('/api', auth);
 app.use('/api/coins', coins);
 app.use('/tokens', swap);
 app.use('/supply', supply);
