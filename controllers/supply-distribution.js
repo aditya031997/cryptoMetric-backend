@@ -23,7 +23,7 @@ async function supplyDistribution(req, res) {
 };
 
 async function getTokenByName(req, res) {
-    const { query } = req.query;
+    const { query, chainId } = req.query;
     const url = `https://api.1inch.dev/token/v1.2/search`;
     const config = {
         headers: {
@@ -34,20 +34,30 @@ async function getTokenByName(req, res) {
             "only_positive_rating": "true"
         }
     };
+    const chainIdPriority = [1, 137, 56, 43114, 8453];
+
     try {
         const response = await axios.get(url, config);
         const responseData = response.data;
+
         if (responseData && Array.isArray(responseData)) {
             const filteredTokens = responseData.filter(token => {
                 const tokenSymbolLowerCase = token.symbol.toLowerCase();
                 const queryLowerCase = query.toLowerCase();
                 return tokenSymbolLowerCase === queryLowerCase;
             });
+
             let preferredToken = null;
-            const chainIdPriority = [56, 1, 137, 8453];
-            for (const chainId of chainIdPriority) {
-                preferredToken = filteredTokens.find(token => token.chainId === chainId);
-                if (preferredToken) break;
+
+            // First, try to find the preferred token based on the provided chainId
+            preferredToken = filteredTokens.find(token => token.chainId === parseInt(chainId));
+
+            // If no token is found for the provided chainId, use the chainIdPriority array
+            if (!preferredToken) {
+                for (const priorityChainId of chainIdPriority) {
+                    preferredToken = filteredTokens.find(token => token.chainId === priorityChainId);
+                    if (preferredToken) break;
+                }
             }
 
             if (preferredToken) {
