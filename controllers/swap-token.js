@@ -1,7 +1,7 @@
 const axios = require("axios");
-const apiUrl = process.env.ONEINCH_API_URL;
 
 async function tokenprice(req, res) {
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { query } = req;
     const url = `${apiUrl}/swap/v6.0/137/tokens`;
     const config = {
@@ -20,6 +20,7 @@ async function tokenprice(req, res) {
 }
 
 async function swagger(req, res) {
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { chain } = req.query;
     const url = `${apiUrl}/swap/v6.0/${chain}/tokens`;
     const config = {
@@ -46,6 +47,7 @@ async function swagger(req, res) {
 }
 
 async function onwInchToken(req, res) {
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { chain, query } = req.query;
     const url = `${apiUrl}/token/v1.2/${chain}/search`;
     const config = {
@@ -75,7 +77,7 @@ async function onwInchToken(req, res) {
 }
 
 async function convert(req, res) {
-
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { addresses, chain } = req.query;
     const url = `${apiUrl}/price/v1.1/${chain}/${addresses}`;
 
@@ -108,6 +110,7 @@ async function convert(req, res) {
 }
 
 async function allowance(req, res) {
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { tokenAddress, walletAddress } = req.query;
     const url = `${apiUrl}/swap/v6.0/1/approve/allowance`;
     try {
@@ -129,6 +132,7 @@ async function allowance(req, res) {
     }
 };
 async function approveTransaction(req, res) {
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { tokenAddress, chain } = req.query;
     let config = {
         method: "get",
@@ -153,6 +157,7 @@ async function approveTransaction(req, res) {
 
 
 async function swapper(req, res) {
+    const apiUrl = process.env.ONEINCH_API_URL;
     const { src, dst, amount, from, slippage, gas, chain, gasPrice } = req.body;
     const url = `${apiUrl}/swap/v6.0/${chain}/swap`;
 

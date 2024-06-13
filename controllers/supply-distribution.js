@@ -1,6 +1,5 @@
 const { GoPlus, ErrorCode } = require("@goplus/sdk-node");
 const axios = require('axios');
-const apiUrl = process.env.ONEINCH_API_URL;
 
 async function supplyDistribution(req, res) {
     const { chainId, address } = req.query;
@@ -25,7 +24,9 @@ async function supplyDistribution(req, res) {
 
 async function getTokenByName(req, res) {
     const { query, chainId } = req.query;
+    const apiUrl = process.env.ONEINCH_API_URL;
     const url = `${apiUrl}/token/v1.2/search`;
+    console.log(url,"url")
     const config = {
         headers: {
             "Authorization": "Bearer KWZMY4eyaMK0h6Ahn0CouMHnnW903iJF"
