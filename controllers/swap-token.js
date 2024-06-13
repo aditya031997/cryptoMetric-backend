@@ -1,8 +1,9 @@
 const axios = require("axios");
+const apiUrl = process.env.ONEINCH_API_URL;
 
 async function tokenprice(req, res) {
     const { query } = req;
-    const url = "https://api.1inch.dev/swap/v6.0/137/tokens";
+    const url = `${apiUrl}/swap/v6.0/137/tokens`;
     const config = {
         headers: {
             Authorization: "Bearer 9MsoPLjRdeMTEI8v9uD5Ij3Gzwm7HmBr",
@@ -20,7 +21,7 @@ async function tokenprice(req, res) {
 
 async function swagger(req, res) {
     const { chain } = req.query;
-    const url = `https://api.1inch.dev/swap/v6.0/${chain}/tokens`;
+    const url = `${apiUrl}/swap/v6.0/${chain}/tokens`;
     const config = {
         headers: {
             Authorization: "Bearer 9MsoPLjRdeMTEI8v9uD5Ij3Gzwm7HmBr",
@@ -46,7 +47,7 @@ async function swagger(req, res) {
 
 async function onwInchToken(req, res) {
     const { chain, query } = req.query;
-    const url = `https://api.1inch.dev/token/v1.2/${chain}/search`;
+    const url = `${apiUrl}/token/v1.2/${chain}/search`;
     const config = {
         headers: {
             "Authorization": "Bearer 9MsoPLjRdeMTEI8v9uD5Ij3Gzwm7HmBr"
@@ -76,7 +77,7 @@ async function onwInchToken(req, res) {
 async function convert(req, res) {
 
     const { addresses, chain } = req.query;
-    const url = `https://api.1inch.dev/price/v1.1/${chain}/${addresses}`;
+    const url = `${apiUrl}/price/v1.1/${chain}/${addresses}`;
 
     // Configure the request
     const config = {
@@ -108,7 +109,7 @@ async function convert(req, res) {
 
 async function allowance(req, res) {
     const { tokenAddress, walletAddress } = req.query;
-    const url = `https://api.1inch.dev/swap/v6.0/1/approve/allowance`;
+    const url = `${apiUrl}/swap/v6.0/1/approve/allowance`;
     try {
         const response = await axios.get(url, {
             headers: {
@@ -132,7 +133,7 @@ async function approveTransaction(req, res) {
     let config = {
         method: "get",
         maxBodyLength: Infinity,
-        url: `https://api.1inch.dev/swap/v6.0/${chain}/approve/transaction?tokenAddress=${tokenAddress}`,
+        url: `${apiUrl}/swap/v6.0/${chain}/approve/transaction?tokenAddress=${tokenAddress}`,
         headers: {
             Authorization: "Bearer VdWWOOLQIOJ0vUdsJ1WQOuXmT5QtOzJp",
         },
@@ -153,7 +154,7 @@ async function approveTransaction(req, res) {
 
 async function swapper(req, res) {
     const { src, dst, amount, from, slippage, gas, chain, gasPrice } = req.body;
-    const url = `https://api.1inch.dev/swap/v6.0/${chain}/swap`;
+    const url = `${apiUrl}/swap/v6.0/${chain}/swap`;
 
     const config = {
         headers: {
