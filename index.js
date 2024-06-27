@@ -38,14 +38,14 @@ connectToDatabase();
 startCronJob(io);
 
 io.on('connection', async (socket) => {
-  console.log('Socket Connected');
+  console.log('Socket Connected --->');
 
   if (socketData) {
     socket.emit('InitialTableListing', socketData);
   }
 
   try {
-    const response = await axios.get(`${process.env.SERVER_URL}/api/coins/cryptoCurrencyInfo`); // Adjusted the URL
+    const response = await axios.get(`${process.env.SERVER_PORT}/api/coins/cryptoCurrencyInfo`); // Adjusted the URL
     socket.emit('InitialTableListing', response.data);
   } catch (error) {
     console.error('Error fetching initial data:', error.response ? error.response.data : error.message);
