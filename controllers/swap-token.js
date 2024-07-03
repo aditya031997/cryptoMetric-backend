@@ -158,7 +158,7 @@ async function approveTransaction(req, res) {
 
 async function swapper(req, res) {
     const apiUrl = process.env.ONEINCH_API_URL;
-    const { src, dst, amount, from, slippage, gas, chain, gasPrice } = req.body;
+    const { src, dst, amount, from, slippage, chain ,origin} = req.body;
     const url = `${apiUrl}/swap/v6.0/${chain}/swap`;
 
     const config = {
@@ -171,8 +171,7 @@ async function swapper(req, res) {
             amount,
             from,
             slippage,
-            gas,
-            gasPrice
+            origin
         }
     };
 
