@@ -8,8 +8,10 @@ const quoterAbi = require("../abis/quoter.json");
 const erc20Abi = require("../abis/erc20.json");
 const networkConfig = require("../config/networkConfig.json");
 const nativeToken = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-
-const getProvider = (chain) => new ethers.JsonRpcProvider(networkConfig.rpcUrls[chain]);
+const { AlphaRouter, nativeOnChain, SwapType } = require("@uniswap/smart-order-router");
+const { Token, CurrencyAmount, TradeType, Percent } = require("@uniswap/sdk-core");
+const {getTokensByChainId} = require("../tokens/index")
+const getProvider = (chain) => new ethers.providers.JsonRpcProvider(networkConfig.rpcUrls[chain]);
 
 const getTokenAddress = (tokenAddress, chain) =>
     tokenAddress === nativeToken
@@ -17,20 +19,21 @@ const getTokenAddress = (tokenAddress, chain) =>
         : tokenAddress;
 
 
+
 async function fetchBalance(req, res) {
     const { walletAddress, tokenAddress, chain } = req.query;
-    console.log(req.query, "req.query")
+    // console.log(req.query, "req.query")
     try {
         const provider = getProvider(chain);
         let balance;
         if (tokenAddress === nativeToken) {
             const rawBalance = await provider.getBalance(walletAddress);
-            balance = ethers.formatEther(rawBalance);
+            balance = ethers.utils.formatEther(rawBalance);
         } else {
             const contractInstance = new ethers.Contract(tokenAddress, erc20Abi, provider);
             const decimals = await contractInstance.decimals();
             const rawBalance = await contractInstance.balanceOf(walletAddress);
-            balance = ethers.formatUnits(rawBalance.toString(), decimals);
+            balance = ethers.utils.formatUnits(rawBalance.toString(), decimals);
         }
         res.json(balance);
     } catch (error) {
@@ -42,6 +45,97 @@ async function fetchBalance(req, res) {
     }
 }
 
+async function getTokensToSwapByChainId (req,res) {
+    try {
+        const {chain} = req.query; 
+        const tokens = getTokensByChainId(chain); 
+        res.json(tokens);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: false,
+            msg: error.message,
+        });
+    }
+}
+async function buildSwapTx(req, res) {
+    try {
+        const { chain, fromTokenObj, toTokenObj, amountIn, walletAddress } = req.body
+        const provider = getProvider(chain);
+
+        const fromToken = fromTokenObj.address === nativeToken ? nativeOnChain(chain) : new Token(chain, fromTokenObj.address, fromTokenObj.decimals, fromTokenObj.symbol, fromTokenObj.name)
+        const toToken = toTokenObj.address === nativeToken ? nativeOnChain(chain) : new Token(chain, toTokenObj.address, toTokenObj.decimals, toTokenObj.symbol, toTokenObj.name)
+
+        const router = new AlphaRouter({ chainId: chain, provider });
+
+        const amountInCurrency = CurrencyAmount.fromRawAmount(fromToken, ethers.utils.parseUnits(amountIn, fromToken.decimals));
+
+        // Find best route
+        const route = await router.route(
+            amountInCurrency,
+            toToken,
+            TradeType.EXACT_INPUT,
+            {
+                recipient: walletAddress,
+                slippageTolerance: new Percent(50, 10000), // 0.5%
+                deadline: Math.floor(Date.now() / 1000) + 1800, // 30 minutes from now
+                type: SwapType.SWAP_ROUTER_02,
+            }
+        );
+
+        const amountOut = route.quote.toFixed(6);
+        if (!route) {
+            return res.status(500).json({
+                message: "No route found",
+                details: "No route found",
+            });
+        }
+
+        // Build transaction
+        const transaction = {
+            to: route.methodParameters?.to,
+            amountOut,
+            data: route.methodParameters?.calldata,
+            value: route.methodParameters?.value,
+            gasLimit: ethers.utils.hexlify(200000),
+            gasPrice: ethers.utils.hexlify(route.gasPriceWei),
+        };
+
+        res.json(transaction);
+
+    } catch (error) {
+        console.error(error);
+        // return error;
+        res.status(500).json({
+            message: "Error building swapTx",
+            details: error.message,
+        });
+    }
+}
+
+// buildSwapTx({
+//     body:{
+//         chain: 137,
+//         amountIn: "0.01",
+//         walletAddress: "0x7aACd024Ba969Fed84A11ffEAD4c6A5F2367aA20",
+//         fromTokenObj: {
+//           address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+//           decimals: 6,
+//           symbol: "USDT",
+//           name: "Tether USD"
+//         },
+//         toTokenObj: {
+//           address: "0x2f6f07cdcf3588944bf4c42ac74ff24bf56e7590",
+//           decimals: 18,
+//           symbol: "STG",
+//           name: "StargateToken"
+//         }
+//       }
+// }, {}).then(data=>{
+//     console.log(data)
+// }).catch(error=>{
+//     console.log("errror >>> ",error)
+// })
 async function allowances(req, res) {
     try {
         const { tokenAddress, walletAddress, chain } = req.query;
@@ -59,14 +153,15 @@ async function allowances(req, res) {
     }
 }
 
-async function approve(req, res) {
+async function grantApproval(req, res) {
     try {
-        const { tokenAddress, value, chain } = req.query;
+        const { tokenAddress, value, chain } = req.body;
+        const provider = getProvider(chain)
         const finalTokenAddress = getTokenAddress(tokenAddress, chain);
-        const contractInstance = new ethers.Contract(finalTokenAddress, weth);
+        const contractInstance = new ethers.Contract(finalTokenAddress, weth, provider);
         const data = contractInstance.interface.encodeFunctionData('approve', [
             networkConfig.spenders[chain],
-            ethers.parseEther(value),
+            ethers.utils.parseEther(value),
         ]);
         const tx = {
             to: finalTokenAddress,
@@ -249,7 +344,9 @@ module.exports = {
     onwInchToken,
     walletToken,
     allowances,
-    approve,
+    grantApproval,
     swap,
     quotation,
+    buildSwapTx, 
+    getTokensToSwapByChainId
 };
