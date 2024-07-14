@@ -1,13 +1,17 @@
 {
   "dependencies": {
     "@goplus/sdk-node": "^1.0.12",
+    "@moralisweb3/common-evm-utils": "^2.26.5",
+    "alchemy-sdk": "^3.3.1",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "cron": "^3.1.6",
     "dotenv": "^16.4.5",
+    "ethers": "^6.13.1",
     "express": "^4.18.3",
     "jsonwebtoken": "^9.0.2",
+    "moralis": "^2.26.5",
     "mysql2": "^3.9.2",
     "node-cron": "^3.0.3",
     "nodemon": "^3.1.0",

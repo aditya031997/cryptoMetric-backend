@@ -1,0 +1,38 @@
+{
+    "rpcUrls": {
+      "137": "https://polygon-rpc.com",
+      "56": "https://bsc-rpc.publicnode.com",
+      "1": "https://ethereum-rpc.publicnode.com",
+      "8453": "https://base.drpc.org",
+      "43114": "https://avax.meowrpc.com"
+    },
+    "spenders": {
+      "1": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+      "43114": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+      "56": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+      "8453": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+      "137": "0xedf6066a2b290C185783862C7F4776A2C8077AD1"
+    },
+    "defaultTokenAddresses": {
+      "137": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      "1": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "8453": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "56": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "43114": "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
+    },
+    "quoters": {
+      "1": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+      "43114": "0xbe0F5544EC67e9B3b2D979aaA43f18Fd87E6257F",
+      "56": "0x78D78E420Da98ad378D7799bE8f4AF69033EB077",
+      "8453": "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a",
+      "137": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e"
+    },
+    "routerAddresses": {
+      "1": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+      "43114": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+      "56": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+      "8453": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+      "137": "0xedf6066a2b290C185783862C7F4776A2C8077AD1"
+    }
+  }
+  

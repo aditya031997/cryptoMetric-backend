@@ -1,12 +1,18 @@
 const express = require('express');
-const { swagger, swapper, convert, tokenprice, allowance, approveTransaction, onwInchToken } = require('../controllers/swap-token');
+const { fetchBalance, tokenprice, onwInchToken ,walletToken,allowances,approve,swap,quotation} = require('../controllers/swap-token');
 const router = express.Router();
 router.get(`/tokenprice`, tokenprice)
-router.get('/swager', swagger);
-router.get('/convert', convert);
-router.post('/swapper', swapper);
-router.get('/allowance', allowance)
+router.get('/fetchBalance', fetchBalance);
 router.get('/retriveToken', onwInchToken)
-router.get('/approveTransaction', approveTransaction);
+router.get('/walletToken', walletToken);
+router.get('/allowances', allowances);
+router.get('/approve', approve);
+router.post('/swap', swap);
+router.post('/quotation', quotation);
+
+
+
+
+
 
 module.exports = router;
