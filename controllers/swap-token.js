@@ -123,29 +123,6 @@ async function buildSwapTx(req, res) {
     }
 }
 
-// buildSwapTx({
-//     body:{
-//         chain: 137,
-//         amountIn: "0.01",
-//         walletAddress: "0x7aACd024Ba969Fed84A11ffEAD4c6A5F2367aA20",
-//         fromTokenObj: {
-//           address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-//           decimals: 6,
-//           symbol: "USDT",
-//           name: "Tether USD"
-//         },
-//         toTokenObj: {
-//           address: "0x2f6f07cdcf3588944bf4c42ac74ff24bf56e7590",
-//           decimals: 18,
-//           symbol: "STG",
-//           name: "StargateToken"
-//         }
-//       }
-// }, {}).then(data=>{
-//     console.log(data)
-// }).catch(error=>{
-//     console.log("errror >>> ",error)
-// })
 async function allowances(req, res) {
     try {
         const { tokenAddress, walletAddress, chain } = req.query;
@@ -187,140 +164,6 @@ async function grantApproval(req, res) {
     }
 }
 
-async function swap(req, res) {
-    const { fromToken, toToken, amountIn, chain, walletAddress, quotation } = req.body;
-    try {
-        const uniswapRouterAddress = networkConfig.routerAddresses[chain];
-        const contractInstance = new ethers.Contract(uniswapRouterAddress, uniswapRouterAbi);
-
-        let swapData;
-        let tx;
-
-        if (fromToken == nativeToken) {
-            const fromTokenAddress = getTokenAddress(fromToken, chain);
-            swapData = [
-                Number(quotation),
-                [fromTokenAddress, toToken],
-                walletAddress,
-                Math.floor(Date.now() / 1000) + 5 * 60,
-            ];
-            const data = contractInstance.interface.encodeFunctionData('swapExactETHForTokens', swapData);
-            tx = {
-                to: uniswapRouterAddress,
-                data,
-                value: ethers.parseEther(amountIn.toString()),
-            };
-        } else {
-            const provider = getProvider(chain);
-            const tokenInstance = new ethers.Contract(fromToken, abi, provider);
-            const decimals = await tokenInstance.decimals();
-
-            swapData = [
-                ethers.parseUnits(amountIn.toString(), decimals),
-                Number(quotation),
-                [fromToken, toToken],
-                walletAddress,
-                Math.floor(Date.now() / 1000) + 5 * 60,
-            ];
-            const data = contractInstance.interface.encodeFunctionData('swapExactTokensForTokens', swapData);
-            tx = {
-                to: uniswapRouterAddress,
-                data,
-            };
-        }
-
-        const serializedTx = JSON.stringify(tx, (key, value) =>
-            typeof value === 'bigint' ? value.toString() : value
-        );
-        res.setHeader('Content-Type', 'application/json');
-        res.end(serializedTx);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
-    }
-}
-
-
-async function quotation(req, res) {
-    const { fromToken, toToken, amountIn, chain } = req.body;
-    try {
-        const quoter = networkConfig.quoters[chain];
-        const provider = getProvider(chain);
-        const fromTokenAddress = getTokenAddress(fromToken, chain);
-        const toTokenAddress = getTokenAddress(toToken, chain);
-        const quoterContract = new ethers.Contract(quoter, quoterAbi, provider);
-        const tokenInstance = new ethers.Contract(fromTokenAddress, erc20Abi, provider)
-        const decimals = await tokenInstance.decimals()
-        const quotesInBigInt = await quoterContract.quoteExactInputSingle.staticCall([
-            fromTokenAddress,
-            toTokenAddress,
-            ethers.parseUnits(amountIn.toString(), decimals),
-            3000,
-            0,
-        ]);
-        res.json(Number(quotesInBigInt[0]));
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
-    }
-}
-
-async function tokenprice(req, res) {
-    const apiUrl = process.env.ONEINCH_API_URL;
-    const { query } = req;
-    const url = `${apiUrl}/swap/v6.0/137/tokens`;
-    const config = {
-        headers: {
-            Authorization: "Bearer 9MsoPLjRdeMTEI8v9uD5Ij3Gzwm7HmBr",
-        },
-    };
-
-    try {
-        const response = await axios.get(url, config);
-        const usdPrices = {
-            tokenOne: response.data.responseOne.raw.usdPrice,
-            tokenTwo: response.data.responseTwo.raw.usdPrice,
-            ratio: response.data.responseOne.raw.usdPrice / response.data.responseTwo.raw.usdPrice,
-        };
-
-        res.status(200).json(usdPrices);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            status: false,
-            msg: "Internal server error",
-        });
-    }
-}
-
-async function onwInchToken(req, res) {
-    const apiUrl = process.env.ONEINCH_API_URL;
-    const { chain, query } = req.query;
-    const url = `${apiUrl}/token/v1.2/${chain}/search`;
-    const config = {
-        headers: {
-            Authorization: "Bearer 9MsoPLjRdeMTEI8v9uD5Ij3Gzwm7HmBr",
-        },
-        params: {
-            query,
-            only_positive_rating: "true",
-        },
-    };
-
-    try {
-        const response = await axios.get(url, config);
-        res.status(200).json({
-            status: true,
-            msg: response.data,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            status: false,
-            msg: "Internal server error",
-        });
-    }
-}
 
 async function walletToken(req, res) {
     try {
@@ -509,13 +352,9 @@ async function getTokenDetails(req, res) {
 
 module.exports = {
     fetchBalance,
-    tokenprice,
-    onwInchToken,
     walletToken,
     allowances,
     grantApproval,
-    swap,
-    quotation,
     buildSwapTx,
     getTokensToSwapByChainId,
     checkForTokenExistanceAndDetails,
