@@ -2,8 +2,10 @@
   "dependencies": {
     "@goplus/sdk-node": "^1.0.12",
     "@moralisweb3/common-evm-utils": "^2.26.5",
+    "@uniswap/sdk": "^3.0.3",
     "@uniswap/sdk-core": "^5.3.1",
     "@uniswap/smart-order-router": "^3.35.12",
+    "@uniswap/v3-sdk": "^3.13.1",
     "alchemy-sdk": "^3.3.1",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",

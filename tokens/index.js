@@ -1,6 +1,6 @@
 const bscTokens = require("./bsc.json");
 const arbTokens = require("./arb.json");
-const polygonTokens = require("./arb.json");
+const polygonTokens = require("./polygon.json");
 const baseTokens = require("./base.json");
 const ethereumTokens = require("./ethereum.json");
 

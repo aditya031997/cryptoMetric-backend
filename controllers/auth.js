@@ -1,7 +1,6 @@
 const initializeUserModel = require('../models/auth');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const tableModel=require('../models/table')
 
 
 const { where, Sequelize } = require('sequelize');

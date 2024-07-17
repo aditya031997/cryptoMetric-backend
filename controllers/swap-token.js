@@ -1,8 +1,11 @@
 const axios = require("axios");
 const ethers = require("ethers");
+const TokenModal = require("../models/blockChain-token")
 const Moralis = require("moralis").default;
 const { EvmChain } = require("@moralisweb3/common-evm-utils");
 const weth = require("../abis/weth.json");
+const { ChainId, Fetcher, WETH } = require("@uniswap/sdk");
+const { Pool } = require("@uniswap/v3-sdk");
 const uniswapRouterAbi = require("../abis/uniswapRouter.json");
 const quoterAbi = require("../abis/quoter.json");
 const erc20Abi = require("../abis/erc20.json");
@@ -10,7 +13,7 @@ const networkConfig = require("../config/networkConfig.json");
 const nativeToken = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 const { AlphaRouter, nativeOnChain, SwapType } = require("@uniswap/smart-order-router");
 const { Token, CurrencyAmount, TradeType, Percent } = require("@uniswap/sdk-core");
-const {getTokensByChainId} = require("../tokens/index")
+const { getTokensByChainId } = require("../tokens/index")
 const getProvider = (chain) => new ethers.providers.JsonRpcProvider(networkConfig.rpcUrls[chain]);
 
 const getTokenAddress = (tokenAddress, chain) =>
@@ -22,7 +25,6 @@ const getTokenAddress = (tokenAddress, chain) =>
 
 async function fetchBalance(req, res) {
     const { walletAddress, tokenAddress, chain } = req.query;
-    // console.log(req.query, "req.query")
     try {
         const provider = getProvider(chain);
         let balance;
@@ -45,10 +47,18 @@ async function fetchBalance(req, res) {
     }
 }
 
-async function getTokensToSwapByChainId (req,res) {
+async function getTokensToSwapByChainId(req, res) {
     try {
-        const {chain} = req.query; 
-        const tokens = getTokensByChainId(chain); 
+        const { chain } = req.query;
+        const tokens = getTokensByChainId(chain);
+        // const TokenData = await TokenModal();
+
+        // for (const token of tokens) {
+        //     await TokenData.create(token);
+        // }
+        // const storedTokens = await TokenData.findAll({
+        //     where: { chainId: chain }
+        // });
         res.json(tokens);
     } catch (error) {
         console.error(error);
@@ -61,11 +71,11 @@ async function getTokensToSwapByChainId (req,res) {
 async function buildSwapTx(req, res) {
     try {
         const { chain, fromTokenObj, toTokenObj, amountIn, walletAddress } = req.body
+
         const provider = getProvider(chain);
 
         const fromToken = fromTokenObj.address === nativeToken ? nativeOnChain(chain) : new Token(chain, fromTokenObj.address, fromTokenObj.decimals, fromTokenObj.symbol, fromTokenObj.name)
         const toToken = toTokenObj.address === nativeToken ? nativeOnChain(chain) : new Token(chain, toTokenObj.address, toTokenObj.decimals, toTokenObj.symbol, toTokenObj.name)
-
         const router = new AlphaRouter({ chainId: chain, provider });
 
         const amountInCurrency = CurrencyAmount.fromRawAmount(fromToken, ethers.utils.parseUnits(amountIn, fromToken.decimals));
@@ -83,7 +93,7 @@ async function buildSwapTx(req, res) {
             }
         );
 
-        const amountOut = route.quote.toFixed(6);
+        const amountOut = route?.quote.toFixed(6);
         if (!route) {
             return res.status(500).json({
                 message: "No route found",
@@ -314,12 +324,7 @@ async function onwInchToken(req, res) {
 
 async function walletToken(req, res) {
     try {
-        await Moralis.start({
-            apiKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjJmZTlkNDVkLWUzYjktNDBjZS04NzQ4LWJiZmYxOTVlMzRhNiIsIm9yZ0lkIjoiMjQyNjM1IiwidXNlcklkIjoiMjQ0OTM5IiwidHlwZUlkIjoiOGZlZjE1N2QtZGM2NS00NWQ3LTllMTAtMzNlMDk4Mzc0MGFjIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3MTg4NjQ4NjksImV4cCI6NDg3NDYyNDg2OX0.t2BaLbRPV0gJqFe2Wg804X3wj4gOa69uJgsieyqH0Gw",
-        });
-
-        const address = "0xB7aacD03a2f18a9868fdCA4e664c57f5a2d4008f";
-        const chain = 137;
+        const { chain, address } = req.query;
         const response = await Moralis.EvmApi.token.getWalletTokenBalances({
             address,
             chain,
@@ -338,6 +343,170 @@ async function walletToken(req, res) {
     }
 }
 
+async function checkForTokenExistanceAndDetails(req, res) {
+    try {
+        let { fromToken, toToken, chain } = req.query;
+        const provider = getProvider(chain);
+        if (fromToken == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+            fromToken = getTokenAddress(fromToken, chain);
+        } else if (toToken == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+            toToken = getTokenAddress(toToken, chain);
+        }
+        async function getTokenDetails(tokenAddress) {
+            const erc20Abi = [
+                "function name() view returns (string)",
+                "function symbol() view returns (string)",
+                "function decimals() view returns (uint8)",
+            ];
+            const tokenContract = new ethers.Contract(
+                tokenAddress,
+                erc20Abi,
+                provider
+            );
+            const name = await tokenContract.name();
+            const symbol = await tokenContract.symbol();
+            const decimals = await tokenContract.decimals();
+            return { name, symbol, decimals };
+        }
+
+        async function checkPairUniswapV2(fromToken, toToken) {
+            const tokenAInstance = await Fetcher.fetchTokenData(
+                ChainId.MAINNET,
+                fromToken,
+                provider
+            );
+            const tokenBInstance = await Fetcher.fetchTokenData(
+                ChainId.MAINNET,
+                toToken,
+                provider
+            );
+            const pair = await Fetcher.fetchPairData(
+                tokenAInstance,
+                tokenBInstance,
+                provider
+            );
+            return pair;
+        }
+
+        // Function to check if pool exists on Uniswap V3
+        async function checkPairUniswapV3(
+            fromToken,
+            toToken,
+            tokenADetails,
+            tokenBDetails
+        ) {
+            const erc20Abi = [
+                "function name() view returns (string)",
+                "function symbol() view returns (string)",
+                "function decimals() view returns (uint8)",
+            ];
+            const tokenAInstance = new Token(
+                ChainId.MAINNET,
+                fromToken,
+                tokenADetails.decimals,
+                tokenADetails.symbol,
+                tokenADetails.name
+            );
+            const tokenBInstance = new Token(
+                ChainId.MAINNET,
+                toToken,
+                tokenBDetails.decimals,
+                tokenBDetails.symbol,
+                tokenBDetails.name
+            );
+            const poolAddress = Pool.getAddress(tokenAInstance, tokenBInstance, 3000); // Fee tier 0.3%
+            return poolAddress;
+        }
+
+        const erc20Abi = [
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+        ];
+
+        let tokenADetails;
+        let tokenBDetails;
+
+        try {
+            tokenADetails = await getTokenDetails(fromToken);
+        } catch (error) {
+            console.log("error", error.message);
+        }
+
+        try {
+            tokenBDetails = await getTokenDetails(fromToken);
+        } catch (error) {
+            console.log("error", error.message);
+        }
+
+        // Check pair on Uniswap V2
+        try {
+            const pairV2 = await checkPairUniswapV2(fromToken, toToken);
+            console.log("Uniswap V2 Pair exists:", pairV2);
+        } catch (error) {
+            console.log("Uniswap V2 Pair does not exist");
+        }
+
+        // Check pair on Uniswap V3
+        try {
+            const pairV3Exists = await checkPairUniswapV3(
+                fromToken,
+                toToken,
+                tokenADetails,
+                tokenBDetails
+            );
+            console.log("Uniswap V3 Pair exists");
+        } catch (error) {
+            console.log("Uniswap V3 Pair does not exist");
+        }
+
+        // Get token details
+        const tokenDetailsA = await getTokenDetails(fromToken);
+        tokenDetailsA.address = fromToken;
+        const tokenDetailsB = await getTokenDetails(toToken);
+        tokenDetailsB.address = toToken;
+        res.status(200).json({
+            tokenADetails: tokenDetailsA,
+            tokenBDetails: tokenDetailsB,
+        });
+    } catch (error) {
+        console.log("error", error.message);
+    }
+}
+
+async function getTokenDetails(req, res) {
+    let { token, chain } = req.query;
+    if (token == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        token = getTokenAddress(token, chain);
+    }
+    const provider = getProvider(chain);
+    const erc20Abi = [
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+        "function decimals() view returns (uint8)",
+    ];
+    const tokenContract = new ethers.Contract(
+        token,
+        erc20Abi,
+        provider
+    );
+    const name = await tokenContract.name();
+    const symbol = await tokenContract.symbol();
+    const decimals = await tokenContract.decimals();
+    const logoURI = `https://tokens.1inch.io/${token}.png`
+    const searchData = {
+        name,
+        symbol,
+        decimals,
+        address: token,
+        logoURI
+    }
+    res.status(200).json({
+        data: searchData
+    });
+}
+
+
 module.exports = {
     fetchBalance,
     tokenprice,
@@ -347,6 +516,8 @@ module.exports = {
     grantApproval,
     swap,
     quotation,
-    buildSwapTx, 
-    getTokensToSwapByChainId
+    buildSwapTx,
+    getTokensToSwapByChainId,
+    checkForTokenExistanceAndDetails,
+    getTokenDetails
 };

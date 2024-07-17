@@ -1,5 +1,5 @@
 const express = require('express');
-const { fetchBalance, tokenprice, onwInchToken ,walletToken,allowances,grantApproval,swap,quotation,buildSwapTx,getTokensToSwapByChainId} = require('../controllers/swap-token');
+const { fetchBalance, tokenprice, onwInchToken, walletToken, allowances, grantApproval, swap, quotation, buildSwapTx, getTokensToSwapByChainId, checkForTokenExistanceAndDetails, getTokenDetails } = require('../controllers/swap-token');
 const router = express.Router();
 router.get(`/tokenprice`, tokenprice)
 router.get('/fetchBalance', fetchBalance);
@@ -11,6 +11,9 @@ router.post('/swap', swap); // not required
 router.post('/quotation', quotation); // not required 
 router.post('/buildSwapTx', buildSwapTx);
 router.get('/getTokensToSwapByChainId', getTokensToSwapByChainId);
+router.get('/getTokenDetails', getTokenDetails);
+router.get('/checkForTokenExistanceAndDetails', checkForTokenExistanceAndDetails);
+
 
 
 
