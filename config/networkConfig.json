@@ -1,11 +1,11 @@
 
 {
     "rpcUrls": {
-      "137": "https://polygon-rpc.com",
-      "56": "https://bsc-rpc.publicnode.com",
-      "1": "https://ethereum-rpc.publicnode.com",
-      "8453": "https://base.drpc.org",
-      "43114": "https://avax.meowrpc.com"
+      "137": "https://site1.moralis-nodes.com/polygon/8b4fb5cb45d14446a9a0348cc08274e9",
+      "56": "https://site1.moralis-nodes.com/bsc/984bbee2a2ee4aafbed34ee755910f0e",
+      "1": "https://site1.moralis-nodes.com/eth/02b906dd2ce242bba445b6e6477cb824",
+      "8453": "https://site1.moralis-nodes.com/base/7a1036f6fbdd434a839ec2b35771e941",
+      "43114": "https://site1.moralis-nodes.com/avalanche/43d7dfdaa10c4428a5392f07f6814a86"
     },
     "spenders": {
       "1": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",

@@ -347,9 +347,9 @@ async function checkForTokenExistanceAndDetails(req, res) {
     try {
         let { fromToken, toToken, chain } = req.query;
         const provider = getProvider(chain);
-        if (fromToken == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        if (fromToken == nativeToken) {
             fromToken = getTokenAddress(fromToken, chain);
-        } else if (toToken == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        } else if (toToken == nativeToken) {
             toToken = getTokenAddress(toToken, chain);
         }
         async function getTokenDetails(tokenAddress) {
@@ -476,7 +476,7 @@ async function checkForTokenExistanceAndDetails(req, res) {
 
 async function getTokenDetails(req, res) {
     let { token, chain } = req.query;
-    if (token == '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+    if (token == nativeToken) {
         token = getTokenAddress(token, chain);
     }
     const provider = getProvider(chain);

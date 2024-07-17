@@ -60,7 +60,7 @@ io.on('connection', async (socket) => {
 
 const startServer = async () => {
   await Moralis.start({
-    apiKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImZiNDhmOWZhLTkwM2EtNDI3OC1iNmNjLWUzNDg0YzU1ZDFiOSIsIm9yZ0lkIjoiMzk5ODg1IiwidXNlcklkIjoiNDEwODk4IiwidHlwZUlkIjoiNjgxNzljYWMtODNiYS00YmVlLTkwZjAtMDYxM2UyNDg5ZmZjIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3MjA3ODEyNTAsImV4cCI6NDg3NjU0MTI1MH0.beWhT_U1x4Xpv481SeLFDXQTUTZfCCC-PQpKs_69ajU",
+    apiKey: process.env.MORALIS_API_KEY,
   });
 }
 server.listen(port, () => {
