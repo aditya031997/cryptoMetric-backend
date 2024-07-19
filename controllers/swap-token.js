@@ -232,8 +232,6 @@ async function walletToken(req, res) {
           nativeToken.verified_contract = true;
         if (Array.isArray(response.jsonResponse)&& response.jsonResponse.length) {
             updatedResponse.push(nativeToken);
-        } else {
-            console.error("Unexpected response structure", response);
         }   
 
         res.status(200).json({
