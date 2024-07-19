@@ -216,24 +216,29 @@ async function walletToken(req, res) {
             address,
             chain,
         });
-
-        const nativeBalance = await Moralis.EvmApi.balance.getNativeBalance({
+    
+        const updatedResponse = response?.jsonResponse?.map((token) => {
+            return {
+              ...token,
+              balance: ethers.utils.formatUnits(token?.balance, token?.decimals),
+            };
+          });
+          const nativeBalance = await Moralis.EvmApi.balance.getNativeBalance({
             address,
             chain,
           });
           const native = nativeBalance.result.balance.ether;
           nativeToken.balance = native
           nativeToken.verified_contract = true;
-        // Ensure the response is an array and then add the new object
-        if (Array.isArray(response.raw)) {
-            response.raw.push(nativeToken);
+        if (Array.isArray(response.jsonResponse)&& response.jsonResponse.length) {
+            updatedResponse.push(nativeToken);
         } else {
             console.error("Unexpected response structure", response);
-        }
+        }   
 
         res.status(200).json({
             status: true,
-            msg: response.raw,
+            msg: updatedResponse,
         });
     } catch (error) {
         console.error(error);
