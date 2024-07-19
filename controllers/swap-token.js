@@ -167,15 +167,30 @@ async function grantApproval(req, res) {
 
 async function walletToken(req, res) {
     try {
-        const { chain, address } = req.query;
+        const { chain, address, nativeToken } = req.body;
+        
         const response = await Moralis.EvmApi.token.getWalletTokenBalances({
             address,
             chain,
         });
 
+        const nativeBalance = await Moralis.EvmApi.balance.getNativeBalance({
+            address,
+            chain,
+          });
+          const native = nativeBalance.result.balance.ether;
+          nativeToken.balance = native
+          nativeToken.verified_contract = true;
+        // Ensure the response is an array and then add the new object
+        if (Array.isArray(response.raw)) {
+            response.raw.push(nativeToken);
+        } else {
+            console.error("Unexpected response structure", response);
+        }
+
         res.status(200).json({
             status: true,
-            msg: response,
+            msg: response.raw,
         });
     } catch (error) {
         console.error(error);
@@ -185,6 +200,7 @@ async function walletToken(req, res) {
         });
     }
 }
+
 
 async function checkForTokenExistanceAndDetails(req, res) {
     try {
