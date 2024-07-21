@@ -182,7 +182,7 @@ async function allowances(req, res) {
 
 async function grantApproval(req, res) {
   try {
-    const { tokenAddress, value, chain } = req.body;
+    const { tokenAddress, value, chain } = req.query;
     const provider = getProvider(chain);
     const finalTokenAddress = getTokenAddress(tokenAddress, chain);
     const contractInstance = new ethers.Contract(

@@ -4,7 +4,7 @@ const router = express.Router();
 router.get('/fetchBalance', fetchBalance);
 router.post('/walletToken', walletToken);
 router.get('/allowances', allowances);
-router.post('/grantApproval', grantApproval);
+router.get('/grantApproval', grantApproval);
 router.post('/buildSwapTx', buildSwapTx);
 router.get('/getTokensToSwapByChainId', getTokensToSwapByChainId);
 router.get('/getTokenDetails', getTokenDetails);
