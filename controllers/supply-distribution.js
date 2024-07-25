@@ -194,17 +194,9 @@ async function getTokenDetails(req, res) {
     };
 
     let coinList;
-    try {
-      coinList = await axios.request(options);
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        return res.status(200).json({
-          status: true,
-          msg: [],
-        });
-      }
-      throw error;
-    }
+
+    coinList = await axios.request(options);
+
     if (coinList.data.data.length === 0) {
       return res.status(200).json({
         status: true,
@@ -250,10 +242,19 @@ async function getTokenDetails(req, res) {
       msg: tokenInfo,
     });
   } catch (error) {
-    res.status(400).json({
-      status: false,
-      msg: error.message,
-    });
+    console.log(error, "REQUEST ERROR");
+    if (error.response && error.response.status === 400) {
+      return res.status(200).json({
+        status: true,
+        msg: [],
+      });
+    }
+    if (error.response.status === 429) {
+      res.status(400).json({
+        status: false,
+        msg: `You've exceeded your API Key's HTTP request rate limit.`,
+      });
+    }
   }
 }
 
