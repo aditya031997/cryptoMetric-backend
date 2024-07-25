@@ -91,22 +91,34 @@ async function buildSwapTx(req, res) {
       fromTokenObj.address === nativeToken
         ? nativeOnChain(chain)
         : new Token(
-            chain,
-            fromTokenObj.address,
-            fromTokenObj.decimals,
-            fromTokenObj.symbol,
-            fromTokenObj.name
-          );
+          chain,
+          fromTokenObj.address,
+          fromTokenObj.decimals,
+          fromTokenObj.symbol,
+          fromTokenObj.name
+        );
     const toToken =
       toTokenObj.address === nativeToken
         ? nativeOnChain(chain)
         : new Token(
-            chain,
-            toTokenObj.address,
-            toTokenObj.decimals,
-            toTokenObj.symbol,
-            toTokenObj.name
-          );
+          chain,
+          toTokenObj.address,
+          toTokenObj.decimals,
+          toTokenObj.symbol,
+          toTokenObj.name
+        );
+
+    if (fromTokenObj.symbol == 'WETH' && toTokenObj.symbol == 'ETH' || fromTokenObj.symbol == 'ETH' && toTokenObj.symbol == 'WETH') {
+      const wethInteraction = {
+        to: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        amountOut: amountIn,
+        value: ethers.utils.parseUnits(amountIn, fromToken.decimals),
+        data: fromToken.symbol == "WETH" ? "0xd0e30db0" : "0x2e1a7d4d"
+
+      }
+
+      return res.json(wethInteraction);
+    }
     const router = new AlphaRouter({ chainId: chain, provider });
 
     const amountInCurrency = CurrencyAmount.fromRawAmount(
@@ -209,42 +221,41 @@ async function grantApproval(req, res) {
 }
 
 async function walletToken(req, res) {
-    try {
-        const { chain, address, nativeToken } = req.body;
-        
-        const response = await Moralis.EvmApi.token.getWalletTokenBalances({
-            address,
-            chain,
-        });
-    
-        const updatedResponse = response?.jsonResponse?.map((token) => {
-            return {
-              ...token,
-              balance: ethers.utils.formatUnits(token?.balance, token?.decimals),
-            };
-          });
-          const nativeBalance = await Moralis.EvmApi.balance.getNativeBalance({
-            address,
-            chain,
-          });
-          const native = nativeBalance.result.balance.ether;
-          nativeToken.balance = native
-          nativeToken.verified_contract = true;
-        if (Array.isArray(response.jsonResponse)&& response.jsonResponse.length) {
-            updatedResponse.push(nativeToken);
-        }   
+  try {
+    const { chain, address, nativeToken } = req.body;
 
-        res.status(200).json({
-            status: true,
-            msg: updatedResponse,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            status: false,
-            msg: error.message,
-        });
+    const response = await Moralis.EvmApi.token.getWalletTokenBalances({
+      address,
+      chain,
+    });
+    const updatedResponse = response?.jsonResponse?.map((token) => {
+      return {
+        ...token,
+        balance: ethers.utils.formatUnits(token?.balance, token?.decimals),
+      };
+    });
+    const nativeBalance = await Moralis.EvmApi.balance.getNativeBalance({
+      address,
+      chain,
+    });
+    const native = nativeBalance.result.balance.ether;
+    nativeToken.balance = native
+    nativeToken.verified_contract = true;
+    if (Array.isArray(response.jsonResponse) && response.jsonResponse.length) {
+      updatedResponse.push(nativeToken);
     }
+
+    res.status(200).json({
+      status: true,
+      msg: updatedResponse,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: false,
+      msg: error.message,
+    });
+  }
 }
 
 
