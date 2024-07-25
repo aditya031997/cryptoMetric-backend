@@ -91,31 +91,33 @@ async function buildSwapTx(req, res) {
       fromTokenObj.address === nativeToken
         ? nativeOnChain(chain)
         : new Token(
-          chain,
-          fromTokenObj.address,
-          fromTokenObj.decimals,
-          fromTokenObj.symbol,
-          fromTokenObj.name
-        );
+            chain,
+            fromTokenObj.address,
+            fromTokenObj.decimals,
+            fromTokenObj.symbol,
+            fromTokenObj.name
+          );
     const toToken =
       toTokenObj.address === nativeToken
         ? nativeOnChain(chain)
         : new Token(
-          chain,
-          toTokenObj.address,
-          toTokenObj.decimals,
-          toTokenObj.symbol,
-          toTokenObj.name
-        );
+            chain,
+            toTokenObj.address,
+            toTokenObj.decimals,
+            toTokenObj.symbol,
+            toTokenObj.name
+          );
 
-    if (fromTokenObj.symbol == 'WETH' && toTokenObj.symbol == 'ETH' || fromTokenObj.symbol == 'ETH' && toTokenObj.symbol == 'WETH') {
+    if (
+      (fromTokenObj.symbol == "WETH" && toTokenObj.symbol == "ETH") ||
+      (fromTokenObj.symbol == "ETH" && toTokenObj.symbol == "WETH")
+    ) {
       const wethInteraction = {
         to: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         amountOut: amountIn,
         value: ethers.utils.parseUnits(amountIn, fromToken.decimals),
-        data: fromToken.symbol == "WETH" ? "0xd0e30db0" : "0x2e1a7d4d"
-
-      }
+        data: fromToken.symbol == "WETH" ? "0xd0e30db0" : "0x2e1a7d4d",
+      };
 
       return res.json(wethInteraction);
     }
@@ -170,7 +172,8 @@ async function buildSwapTx(req, res) {
 
 async function allowances(req, res) {
   try {
-    const { tokenAddress, walletAddress, chain } = req.query;
+    const { tokenAddress, walletAddress, chain, spender } = req.query;
+    console.log(spender, "spender");
     const provider = getProvider(chain);
     const finalTokenAddress = getTokenAddress(tokenAddress, chain);
     const contractInstance = new ethers.Contract(
@@ -178,10 +181,7 @@ async function allowances(req, res) {
       weth,
       provider
     );
-    const allowance = await contractInstance.allowance(
-      walletAddress,
-      networkConfig.spenders[chain]
-    );
+    const allowance = await contractInstance.allowance(walletAddress, spender);
     res.json(Number(allowance));
   } catch (error) {
     console.error(error);
@@ -194,7 +194,7 @@ async function allowances(req, res) {
 
 async function grantApproval(req, res) {
   try {
-    const { tokenAddress, value, chain } = req.query;
+    const { tokenAddress, value, chain, spender } = req.query;
     const provider = getProvider(chain);
     const finalTokenAddress = getTokenAddress(tokenAddress, chain);
     const contractInstance = new ethers.Contract(
@@ -203,7 +203,7 @@ async function grantApproval(req, res) {
       provider
     );
     const data = contractInstance.interface.encodeFunctionData("approve", [
-      networkConfig.spenders[chain],
+      spender,
       ethers.utils.parseEther(value),
     ]);
     const tx = {
@@ -239,7 +239,7 @@ async function walletToken(req, res) {
       chain,
     });
     const native = nativeBalance.result.balance.ether;
-    nativeToken.balance = native
+    nativeToken.balance = native;
     nativeToken.verified_contract = true;
     if (Array.isArray(response.jsonResponse) && response.jsonResponse.length) {
       updatedResponse.push(nativeToken);
@@ -257,7 +257,6 @@ async function walletToken(req, res) {
     });
   }
 }
-
 
 async function checkForTokenExistanceAndDetails(req, res) {
   try {
