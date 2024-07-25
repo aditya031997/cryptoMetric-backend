@@ -173,7 +173,6 @@ async function buildSwapTx(req, res) {
 async function allowances(req, res) {
   try {
     const { tokenAddress, walletAddress, chain, spender } = req.query;
-    console.log(spender, "spender");
     const provider = getProvider(chain);
     const finalTokenAddress = getTokenAddress(tokenAddress, chain);
     const contractInstance = new ethers.Contract(
