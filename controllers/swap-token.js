@@ -82,31 +82,31 @@ async function getTokensToSwapByChainId(req, res) {
 }
 async function buildSwapTx(req, res) {
   try {
-    const { chain, fromTokenObj, toTokenObj, amountIn, walletAddress } =
+    const { chain, fromTokenObj, toTokenObj, amountIn, walletAddress, slippageTolerance } =
       req.body;
-
+    const tnxslipage = slippageTolerance * 10
     const provider = getProvider(chain);
 
     const fromToken =
       fromTokenObj.address === nativeToken
         ? nativeOnChain(chain)
         : new Token(
-            chain,
-            fromTokenObj.address,
-            fromTokenObj.decimals,
-            fromTokenObj.symbol,
-            fromTokenObj.name
-          );
+          chain,
+          fromTokenObj.address,
+          fromTokenObj.decimals,
+          fromTokenObj.symbol,
+          fromTokenObj.name
+        );
     const toToken =
       toTokenObj.address === nativeToken
         ? nativeOnChain(chain)
         : new Token(
-            chain,
-            toTokenObj.address,
-            toTokenObj.decimals,
-            toTokenObj.symbol,
-            toTokenObj.name
-          );
+          chain,
+          toTokenObj.address,
+          toTokenObj.decimals,
+          toTokenObj.symbol,
+          toTokenObj.name
+        );
 
     if (
       (fromTokenObj.symbol == "WETH" && toTokenObj.symbol == "ETH") ||
@@ -135,20 +135,22 @@ async function buildSwapTx(req, res) {
       TradeType.EXACT_INPUT,
       {
         recipient: walletAddress,
-        slippageTolerance: new Percent(50, 10000), // 0.5%
+        slippageTolerance: new Percent(tnxslipage, 10000), // 0.5%
         deadline: Math.floor(Date.now() / 1000) + 1800, // 30 minutes from now
         type: SwapType.SWAP_ROUTER_02,
       }
     );
 
-    const amountOut = route?.quote.toFixed(6);
+    let amountOut = route?.quote.toFixed(6);
     if (!route) {
       return res.status(500).json({
-        message: "No route found",
+        message: "No route found for this token",
         details: "No route found",
       });
     }
-
+    if (amountOut === '0.000000') {
+      amountOut = 0
+    }
     // Build transaction
     const transaction = {
       to: route.methodParameters?.to,

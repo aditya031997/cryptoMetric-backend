@@ -3,7 +3,7 @@ const Category = require('../models/category');
 const createCryptoCoins = async (req, res) => {
   try {
     const Coin = await CoinMarket();
-    const apiKey = process.env.COIN_API_KEY;
+    const apiKey = process.env.COIN_MARKET_CAP_API_KEY;
     const apiUrl = process.env.API_URL;
     const response = await fetch(
       `${apiUrl}/v1/cryptocurrency/listings/latest`,
@@ -82,7 +82,7 @@ const getCoinData = async (req, res) => {
 const addCoinCategories = async (req, res) => {
   try {
     const Categories = await Category();
-    const apiKey = process.env.COIN_API_KEY;
+    const apiKey = process.env.COIN_MARKET_CAP_API_KEY;
     const apiUrl = process.env.API_URL;
 
     // Fetch the list of all categories
