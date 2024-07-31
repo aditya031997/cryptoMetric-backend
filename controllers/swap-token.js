@@ -8,6 +8,7 @@ const { ChainId, Fetcher, WETH } = require("@uniswap/sdk");
 const { Pool } = require("@uniswap/v3-sdk");
 const uniswapRouterAbi = require("../abis/uniswapRouter.json");
 const quoterAbi = require("../abis/quoter.json");
+const uniswapV2Router02Abi = require("../abis/uniswapV2Router02.json")
 const erc20Abi = require("../abis/erc20.json");
 const networkConfig = require("../config/networkConfig.json");
 const nativeToken = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
@@ -144,9 +145,88 @@ async function buildSwapTx(req, res) {
     let amountOut = route?.quote.toFixed(6);
     if (!route) {
       return res.status(500).json({
-        message: "No route found for this token",
+        message: "No route found",
         details: "No route found",
       });
+    }
+
+    if (route.route[0].protocol == "V2") {
+      const routerAddress = networkConfig.routerAddresses[chain];
+      const routerContract = new ethers.Contract(
+        routerAddress,
+        uniswapV2Router02Abi,
+        provider
+      );
+      const fromAddress = fromToken.address
+        ? fromToken.address
+        : getTokenAddress(nativeToken, chain);
+      const toAddress = toToken.address
+        ? toToken.address
+        : getTokenAddress(nativeToken, chain);
+
+      const quotationPath = [fromAddress, toAddress];
+      const amountInWei = ethers.utils.parseUnits(
+        amountIn.toString(),
+        fromTokenObj.decimals
+      );
+
+      try {
+        const quote = await routerContract.getAmountsOut(
+          amountInWei.toString(),
+          quotationPath
+        );
+      } catch (error) {
+        return res.status(500).json({
+          message: "No direct route found",
+          details: "No direct route found",
+        });
+      }
+      let method, value, data;
+      const swapPath = [fromAddress, toAddress];
+      const amountOutMin = quote[1].mul(100 - slippageTolerance).div(100); // .5% slippage
+      const deadline = Math.floor(Date.now() / 1000) + 300; // 5 minutes
+
+      if (fromTokenObj.address === nativeToken) {
+        method = "swapExactETHForTokens";
+        value = amountInWei;
+        data = routerContract.interface.encodeFunctionData(method, [
+          amountOutMin,
+          swapPath,
+          walletAddress,
+          deadline,
+        ]);
+      } else if (toTokenObj.address === nativeToken) {
+        method = "swapExactTokensForETH";
+        value = "0";
+        data = routerContract.interface.encodeFunctionData(method, [
+          amountInWei,
+          amountOutMin,
+          swapPath,
+          walletAddress,
+          deadline,
+        ]);
+      } else {
+        method = "swapExactTokensForTokens";
+        value = "0";
+        data = routerContract.interface.encodeFunctionData(method, [
+          amountInWei,
+          amountOutMin,
+          swapPath,
+          walletAddress,
+          deadline,
+        ]);
+      }
+
+      const transaction = {
+        to: routerAddress,
+        amountOut: ethers.utils.formatUnits(
+          amountOutMin.toString(),
+          toTokenObj.decimals
+        ),
+        data,
+        value: value.toString(),
+      };
+      return res.status(200).json(transaction);
     }
     if (amountOut === '0.000000') {
       amountOut = 0
@@ -160,7 +240,6 @@ async function buildSwapTx(req, res) {
       gasLimit: ethers.utils.hexlify(200000),
       gasPrice: ethers.utils.hexlify(route.gasPriceWei),
     };
-
     res.json(transaction);
   } catch (error) {
     console.error(error);
