@@ -178,13 +178,13 @@ async function buildSwapTx(req, res) {
         );
       } catch (error) {
         return res.status(500).json({
-          message: "No direct route found",
-          details: "No direct route found",
+          message: "No route, try another token or amount.",
+          details: "No route, try another token or amount.",
         });
       }
       let method, value, data;
       const swapPath = [fromAddress, toAddress];
-      const amountOutMin = quote[1].mul(100*100 - slippageTolerance*100).div(100*100); // .5% slippage
+      const amountOutMin = quote[1].mul(100 * 100 - slippageTolerance * 100).div(100 * 100); // .5% slippage
       const deadline = Math.floor(Date.now() / 1000) + 300; // 5 minutes
 
       if (fromTokenObj.address === nativeToken) {
