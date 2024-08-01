@@ -285,7 +285,7 @@ async function grantApproval(req, res) {
     );
     const data = contractInstance.interface.encodeFunctionData("approve", [
       spender,
-      ethers.utils.parseEther(value),
+      value,
     ]);
     const tx = {
       to: finalTokenAddress,
