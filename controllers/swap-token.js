@@ -64,14 +64,14 @@ async function getTokensToSwapByChainId(req, res) {
   try {
     const { chain } = req.query;
     const tokens = getTokensByChainId(chain);
-    // const TokenData = await TokenModal();
+    const TokenData = await TokenModal();
 
-    // for (const token of tokens) {
-    //     await TokenData.create(token);
-    // }
-    // const storedTokens = await TokenData.findAll({
-    //     where: { chainId: chain }
-    // });
+    for (const token of tokens) {
+        await TokenData.create(token);
+    }
+    const storedTokens = await TokenData.findAll({
+        where: { chainId: chain }
+    });
     res.json(tokens);
   } catch (error) {
     console.error(error);
