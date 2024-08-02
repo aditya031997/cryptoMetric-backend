@@ -22,6 +22,12 @@ async function initializeUserModel() {
     socketId: {
       type: DataTypes.STRING,
     },
+    invitation_id:{
+      type: DataTypes.STRING,
+    },
+    invitation_status:{
+      type: DataTypes.STRING,
+    },
     provider: {
       type: DataTypes.STRING,
     },
