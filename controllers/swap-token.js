@@ -64,14 +64,21 @@ async function getTokensToSwapByChainId(req, res) {
   try {
     const { chain } = req.query;
     const tokens = getTokensByChainId(chain);
-    const TokenData = await TokenModal();
+    // const TokenData = await TokenModal();
 
-    for (const token of tokens) {
-        await TokenData.create(token);
-    }
-    const storedTokens = await TokenData.findAll({
-        where: { chainId: chain }
-    });
+    // for (const token of tokens) {
+    //   const existingToken = await TokenData.findOne({
+    //     where: { address: token.address, chainId: chain }
+    //   });
+
+    //   if (!existingToken) {
+    //     await TokenData.create(token);
+    //   }
+    // }
+
+    // const storedTokens = await TokenData.findAll({
+    //   where: { chainId: chain }
+    // });
     res.json(tokens);
   } catch (error) {
     console.error(error);
@@ -473,6 +480,7 @@ async function checkForTokenExistanceAndDetails(req, res) {
 async function getTokenDetails(req, res) {
   try {
     let { token, chain } = req.query;
+    // const TokenData = await TokenModal();
     if (token == nativeToken) {
       token = getTokenAddress(token, chain);
     }
@@ -483,23 +491,35 @@ async function getTokenDetails(req, res) {
       "function decimals() view returns (uint8)",
     ];
     const tokenContract = new ethers.Contract(token, erc20Abi, provider);
-    const name = await tokenContract.name();
-    const symbol = await tokenContract.symbol();
-    const decimals = await tokenContract.decimals();
+    const [name, symbol, decimals] = await Promise.all([
+      tokenContract.name(),
+      tokenContract.symbol(),
+      tokenContract.decimals(),
+    ]);
     const logoURI = `https://tokens.1inch.io/${token}.png`;
-    const searchData = {
+    const tokenData = {
       name,
       symbol,
       decimals,
       address: token,
       logoURI,
+      chainId: chain
     };
+    // const existingToken = await TokenData.findOne({
+    //   where: { address: token, chainId: chain }
+    // });
+
+    // if (!existingToken) {
+    //   // If token doesn't exist, create a new entry0x39013F961c378f02C2b82A6E1d31E9812786FD9D
+    //   await TokenData.create(tokenData);
+    // }
+
     res.status(200).json({
-      data: searchData,
+      data: tokenData,
     });
   } catch (error) {
     res.status(400).json({
-      message: "Please enter a valid address",
+      message: "Error fetching token. Please ensure you've entered a valid address.",
     });
   }
 }

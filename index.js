@@ -11,6 +11,9 @@ const { startCronJob, socketData } = require('./utils/cronjob');
 const axios = require('axios');
 const swap = require('./routes/swap-token');
 const supply = require('./routes/supply-distribution');
+const erc20Abi = require("./abis/erc20.json");
+const weth = require('./abis/weth.json');
+const networkConfig = require("./config/networkConfig.json");
 const ethers = require('ethers')
 
 dotenv.config();
@@ -86,6 +89,8 @@ startServer();
 //   "https://avalanche.drpc.org"
 // );
 
+// const provider = (rpcUrl) => new ethers.providers.JsonRpcProvider(rpcUrl)
+
 // const uniswapV2FactoryAddressEthereum =
 //   "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 // const uniswapV3FactoryAddressEthereum =
@@ -108,167 +113,166 @@ startServer();
 // const uniswapV2FactoryAbi = require("./abis/uniswapV2Factory.json");
 // const uniswapV3FactoryAbi = require("./abis/uniswapV3Factory.json");
 
+// const getTokenInstance = async (token, provider) => {
+//   return new ethers.Contract(token, weth, provider);
+// }
+
+// const processTokenInfo = async (token0, token1, chain) => {
+//   // check tokens for db existence
+//   // console.log('chain', chain)
+//   // console.log("token0", token0);
+//   // console.log("token1", token1);
+//   // if not found, make db entry
+//   const tokenInstance = await getTokenInstance(token1, provider(networkConfig.rpcUrls[chain]));
+//   const address = ""; // token
+//   const tokenName = await tokenInstance.name();
+//   // console.log('tokenName', tokenName)
+//   const tokenSymbol = await tokenInstance.symbol();
+//   // console.log('tokenSymbol', tokenSymbol);
+//   const tokenDecimal = await tokenInstance.decimals();
+//   // console.log('tokenDecimal', tokenDecimal)
+//   const chainId = chain;
+//   // console.log('chainId', chainId)
+//   const logoURI = ""
+// }
+
 // const uniswapV2FactoryEthereumInstance = new ethers.Contract(
 //   uniswapV2FactoryAddressEthereum,
 //   uniswapV2FactoryAbi,
-//   providerOfEthereum
+//   provider(networkConfig.rpcUrls["1"])
 // );
 
 // uniswapV2FactoryEthereumInstance.on(
 //   "PairCreated",
-//   (token0, token1, pair, number) => {
-//     // check tokens for db existence
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     // if not found, make db entry
-
-//     const address = ""; // token
-//     const name = "";
-//     const symbol = "";
-//     const decimal = "";
-//     const chainId = "";
-//     const logoURI = ""
-//     console.log("uniswap V2 pair on ethereum", pair);
-//     console.log("number", number);
+//   async (token0, token1, pair, number) => {
+//     // console.log('Eth');
+//     await processTokenInfo(token0, token1, 1);
 //   }
 // );
 
 // const uniswapV2FactoryPolygonInstance = new ethers.Contract(
 //   uniswapV2FactoryAddressPolygon,
 //   uniswapV2FactoryAbi,
-//   providerOfPolygon
+//   provider(networkConfig.rpcUrls["137"])
 // );
 
 // uniswapV2FactoryPolygonInstance.on(
 //   "PairCreated",
-//   (token0, token1, pair, number) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V2 pair on polygon", pair);
-//     console.log("number", number);
+//   async (token0, token1, pair, number) => {
+//     // console.log('Polygon');
+//     await processTokenInfo(token0, token1, 137);
 //   }
 // );
 
 // const uniswapV2FactoryBNBInstance = new ethers.Contract(
 //   uniswapV2FactoryAddressBNB,
 //   uniswapV2FactoryAbi,
-//   providerOfBNB
+//   provider(networkConfig.rpcUrls["56"])
 // );
 
 // uniswapV2FactoryBNBInstance.on(
 //   "PairCreated",
-//   (token0, token1, pair, number) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V2 pair on BNB", pair);
-//     console.log("number", number);
+//   async (token0, token1, pair, number) => {
+//     // console.log("BNB");
+//     await processTokenInfo(token0, token1, 56);
 //   }
 // );
 
 // const uniswapV2FactoryBaseInstance = new ethers.Contract(
 //   uniswapV2FactoryAddressBase,
 //   uniswapV2FactoryAbi,
-//   providerOfBase
+//   provider(networkConfig.rpcUrls["8453"])
 // );
 
 // uniswapV2FactoryBaseInstance.on(
 //   "PairCreated",
-//   (token0, token1, pair, number) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V2 pair on Base", pair);
-//     console.log("number", number);
+//   async (token0, token1, pair, number) => {
+//     // console.log("Base");
+//     await processTokenInfo(token0, token1, 8453);
 //   }
 // );
 
 // const uniswapV2FactoryAvaxInstance = new ethers.Contract(
 //   uniswapV2FactoryAddressAvax,
 //   uniswapV2FactoryAbi,
-//   providerOfAvax
+//   provider(networkConfig.rpcUrls["43114"])
 // );
 
 // uniswapV2FactoryAvaxInstance.on(
 //   "PairCreated",
-//   (token0, token1, pair, number) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V2 pair on Avax", pair);
-//     console.log("number", number);
+//   async (token0, token1, pair, number) => {
+//     // console.log("Avax");
+//     await processTokenInfo(token0, token1, 43114);
 //   }
 // );
 
 // const uniswapV3FactoryEthereumInstance = new ethers.Contract(
 //   uniswapV3FactoryAddressEthereum,
 //   uniswapV3FactoryAbi,
-//   providerOfEthereum
+//   provider(networkConfig.rpcUrls["1"])
 // );
 
 // uniswapV3FactoryEthereumInstance.on(
 //   "PoolCreated",
-//   (token0, token1, fee, tickSpacing, pool) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V3 pool on Ethereum", pool);
+//   async (token0, token1, fee, tickSpacing, pool) => {
+//     // console.log('V3 Eth');
+//     await processTokenInfo(token0, token1, 1);
 //   }
 // );
 
 // const uniswapV3FactoryPolygonInstance = new ethers.Contract(
 //   uniswapV3FactoryAddressPolygon,
 //   uniswapV3FactoryAbi,
-//   providerOfPolygon
+//   provider(networkConfig.rpcUrls["137"])
 // );
 
 // uniswapV3FactoryPolygonInstance.on(
 //   "PoolCreated",
-//   (token0, token1, fee, tickSpacing, pool) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V3 pool on polygon", pool);
+//   async (token0, token1, fee, tickSpacing, pool) => {
+//     // console.log('V3 Polygon');
+//     await processTokenInfo(token0, token1, 137);
 //   }
 // );
 
 // const uniswapV3FactoryBNBInstance = new ethers.Contract(
 //   uniswapV3FactoryAddressBNB,
 //   uniswapV3FactoryAbi,
-//   providerOfBNB
+//   provider(networkConfig.rpcUrls["56"])
 // );
 
 // uniswapV3FactoryBNBInstance.on(
 //   "PoolCreated",
-//   (token0, token1, fee, tickSpacing, pool) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V3 pool on BNB", pool);
+//   async (token0, token1, fee, tickSpacing, pool) => {
+//     // console.log("V3 BNB");
+//     await processTokenInfo(token0, token1, 56);
 //   }
 // );
 
 // const uniswapV3FactoryBaseInstance = new ethers.Contract(
 //   uniswapV3FactoryAddressBase,
 //   uniswapV3FactoryAbi,
-//   providerOfBase
+//   provider(networkConfig.rpcUrls["8453"])
 // );
 
 // uniswapV3FactoryBaseInstance.on(
 //   "PoolCreated",
-//   (token0, token1, fee, tickSpacing, pool) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V3 pool on Base", pool);
+//   async (token0, token1, fee, tickSpacing, pool) => {
+//     // console.log("V3 Base");
+//     await processTokenInfo(token0, token1, 8453);
 //   }
 // );
 
 // const uniswapV3FactoryAvaxInstance = new ethers.Contract(
 //   uniswapV3FactoryAddressAvax,
 //   uniswapV3FactoryAbi,
-//   providerOfAvax
+//   provider(networkConfig.rpcUrls["43114"])
 // );
 
 // uniswapV3FactoryAvaxInstance.on(
 //   "PoolCreated",
-//   (token0, token1, fee, tickSpacing, pool) => {
-//     console.log("token0", token0);
-//     console.log("token1", token1);
-//     console.log("uniswap V3 pool on Avax", pool);
+//   async (token0, token1, fee, tickSpacing, pool) => {
+//     // console.log('V3 avax');
+//     await processTokenInfo(token0, token1, 43114);
 //   }
 // );
 
