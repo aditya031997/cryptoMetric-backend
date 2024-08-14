@@ -1,7 +1,16 @@
 const { GoPlus, ErrorCode } = require("@goplus/sdk-node");
 const axios = require("axios");
 const goplusSupportedChains = require("../config/goPlusSupportedChains.json");
-
+const TokenModal = require("../models/blockChain-token");
+const ethers = require("ethers");
+const networkConfig = require("../config/networkConfig.json");
+const getProvider = (chain) =>
+  new ethers.providers.JsonRpcProvider(networkConfig.rpcUrls[chain]);
+const erc20Abi = [
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+];
 async function supplyDistribution(req, res) {
   const { chainId, address } = req.query;
   try {
@@ -175,6 +184,7 @@ async function supplyDistribution(req, res) {
 // }
 
 async function getTokenDetails(req, res) {
+  const TokenData = await TokenModal();
   try {
     const { symbol } = req.query;
     if (!symbol) {
@@ -216,27 +226,65 @@ async function getTokenDetails(req, res) {
     const coinInfo = await axios.request(options2);
     const contractAddresses = coinInfo.data.data[id].contract_address;
     const keys = Object.keys(goplusSupportedChains);
+    const selectedChainsForDecimal = ["1", "56", "137", "8453", "43114"];
     const tokenInfo = [];
     const platforms = [];
 
-    contractAddresses.map((contract_address) => {
+    for (const contract_address of contractAddresses) {
       const platformName = contract_address.platform.name;
+      let decimals;
       for (let i = 0; i < keys.length; i++) {
         if (platformName == keys[i]) {
+          const found = selectedChainsForDecimal.find((value) => value == goplusSupportedChains[keys[i]]);
+          if (found) {
+            const provider = getProvider(goplusSupportedChains[keys[i]])
+            const tokenInstance = new ethers.Contract(contract_address.contract_address, erc20Abi, provider);
+            decimals = await tokenInstance.decimals();
+          }
+
           platforms.push({
             chainId: goplusSupportedChains[keys[i]],
             chainName: keys[i],
             tokenAddress: contract_address.contract_address,
+            decimals: found ? decimals : [],
           });
         }
       }
-    });
+    };
     tokenInfo.push({
       name: coinInfo.data.data[id].name,
       symbol: coinInfo.data.data[id].symbol,
       category: coinInfo.data.data[id].category,
       platform: platforms,
     });
+    // console.log(platforms,"platforms")
+    let unmatchedTokens = [];
+    for (const platform of platforms) {
+      if (selectedChainsForDecimal.includes(platform.chainId)) {
+        const existingToken = await TokenData.findOne({
+          where: {
+            address: platform.tokenAddress,
+            chainId: platform.chainId
+          }
+        });
+        // console.log(existingToken,"existingToken")
+        if (!existingToken) {
+          unmatchedTokens.push({
+            address: platform.tokenAddress,
+            chainId: platform.chainId,
+            name: coinInfo.data.data[id].name,
+            decimals: platform.decimals,
+            symbol: coinInfo.data.data[id].symbol,
+            logoURI: `https://tokens.1inch.io/${platform.tokenAddress}.png`
+          });
+        }
+      }
+    }
+         await TokenData.bulkCreate(unmatchedTokens)
+
+    console.log("unmatchedTokens", unmatchedTokens,unmatchedTokens.length);
+
+
     res.status(200).json({
       status: true,
       msg: tokenInfo,

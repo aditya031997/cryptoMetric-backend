@@ -13,7 +13,6 @@ async function initializeTokenModel() {
     address: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     symbol: {
       type: DataTypes.STRING,

@@ -64,7 +64,7 @@ async function getTokensToSwapByChainId(req, res) {
   try {
     const { chain } = req.query;
     const tokens = getTokensByChainId(chain);
-    // const TokenData = await TokenModal();
+    const TokenData = await TokenModal();
 
     // for (const token of tokens) {
     //   const existingToken = await TokenData.findOne({
@@ -76,10 +76,12 @@ async function getTokensToSwapByChainId(req, res) {
     //   }
     // }
 
-    // const storedTokens = await TokenData.findAll({
-    //   where: { chainId: chain }
-    // });
-    res.json(tokens);
+    const storedTokens = await TokenData.findAll({
+      where: { chainId: chain }
+    });
+    // console.log(tokens.length,storedTokens.length,"checking")
+
+    res.json(storedTokens);
   } catch (error) {
     console.error(error);
     res.status(500).json({
