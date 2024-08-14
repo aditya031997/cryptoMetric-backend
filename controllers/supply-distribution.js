@@ -202,7 +202,6 @@ async function getTokenDetails(req, res) {
         "X-CMC_PRO_API_KEY": process.env.COIN_MARKET_CAP_API_KEY,
       },
     };
-
     let coinList;
 
     coinList = await axios.request(options);
@@ -229,28 +228,37 @@ async function getTokenDetails(req, res) {
     const selectedChainsForDecimal = ["1", "56", "137", "8453", "43114"];
     const tokenInfo = [];
     const platforms = [];
+    if (symbol === "ETH") {
+      platforms.push({
+        chainId: "1",
+        chainName: "Ethereum",
+        tokenAddress: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+      });
+    } else {
+      for (const contract_address of contractAddresses) {
+        const platformName = contract_address.platform.name;
+        let decimals;
+        for (let i = 0; i < keys.length; i++) {
+          if (platformName == keys[i]) {
+            const found = selectedChainsForDecimal.find((value) => value == goplusSupportedChains[keys[i]]);
+            if (found) {
+              const provider = getProvider(goplusSupportedChains[keys[i]]);
+              const tokenInstance = new ethers.Contract(contract_address.contract_address, erc20Abi, provider);
+              decimals = await tokenInstance.decimals();
+            }
 
-    for (const contract_address of contractAddresses) {
-      const platformName = contract_address.platform.name;
-      let decimals;
-      for (let i = 0; i < keys.length; i++) {
-        if (platformName == keys[i]) {
-          const found = selectedChainsForDecimal.find((value) => value == goplusSupportedChains[keys[i]]);
-          if (found) {
-            const provider = getProvider(goplusSupportedChains[keys[i]])
-            const tokenInstance = new ethers.Contract(contract_address.contract_address, erc20Abi, provider);
-            decimals = await tokenInstance.decimals();
+            platforms.push({
+              chainId: goplusSupportedChains[keys[i]],
+              chainName: keys[i],
+              tokenAddress: contract_address.contract_address,
+              decimals: found ? decimals : [],
+            });
           }
-
-          platforms.push({
-            chainId: goplusSupportedChains[keys[i]],
-            chainName: keys[i],
-            tokenAddress: contract_address.contract_address,
-            decimals: found ? decimals : [],
-          });
         }
       }
-    };
+    }
+
     tokenInfo.push({
       name: coinInfo.data.data[id].name,
       symbol: coinInfo.data.data[id].symbol,
@@ -280,7 +288,7 @@ async function getTokenDetails(req, res) {
         }
       }
     }
-         await TokenData.bulkCreate(unmatchedTokens)
+    await TokenData.bulkCreate(unmatchedTokens)
 
 
     res.status(200).json({
@@ -288,14 +296,13 @@ async function getTokenDetails(req, res) {
       msg: tokenInfo,
     });
   } catch (error) {
-    console.log(error, "REQUEST ERROR");
-    if (error.response && error.response.status === 400) {
+    if (error?.response) {
       return res.status(200).json({
         status: true,
         msg: [],
       });
     }
-    if (error.response.status === 429) {
+    if (error?.response && error?.response?.status === 429) {
       res.status(400).json({
         status: false,
         msg: `You've exceeded your API Key's HTTP request rate limit.`,
