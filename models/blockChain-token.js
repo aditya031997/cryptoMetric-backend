@@ -30,6 +30,14 @@ async function initializeTokenModel() {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    eip: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    tags: {
+      type:DataTypes.JSON,
+      allowNull: true,
+    },
     chainId: {
       type: DataTypes.INTEGER,
       allowNull: false,

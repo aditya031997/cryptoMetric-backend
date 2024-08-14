@@ -66,6 +66,7 @@ async function getTokensToSwapByChainId(req, res) {
     const tokens = getTokensByChainId(chain);
     const TokenData = await TokenModal();
 
+    // Ensure tokenList contains individual token objects
     // for (const token of tokens) {
     //   const existingToken = await TokenData.findOne({
     //     where: { address: token.address, chainId: chain }
@@ -79,7 +80,6 @@ async function getTokensToSwapByChainId(req, res) {
     const storedTokens = await TokenData.findAll({
       where: { chainId: chain }
     });
-    // console.log(tokens.length,storedTokens.length,"checking")
 
     res.json(storedTokens);
   } catch (error) {
@@ -507,10 +507,11 @@ async function getTokenDetails(req, res) {
       logoURI,
       chainId: chain
     };
+    // const TokenData = await TokenModal();
+
     // const existingToken = await TokenData.findOne({
     //   where: { address: token, chainId: chain }
     // });
-
     // if (!existingToken) {
     //   // If token doesn't exist, create a new entry0x39013F961c378f02C2b82A6E1d31E9812786FD9D
     //   await TokenData.create(tokenData);

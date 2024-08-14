@@ -257,7 +257,6 @@ async function getTokenDetails(req, res) {
       category: coinInfo.data.data[id].category,
       platform: platforms,
     });
-    // console.log(platforms,"platforms")
     let unmatchedTokens = [];
     for (const platform of platforms) {
       if (selectedChainsForDecimal.includes(platform.chainId)) {
@@ -267,7 +266,7 @@ async function getTokenDetails(req, res) {
             chainId: platform.chainId
           }
         });
-        // console.log(existingToken,"existingToken")
+        const logoImg = coinInfo.data.data[id].name.toLowerCase().replace(/\s+/g, '-');
         if (!existingToken) {
           unmatchedTokens.push({
             address: platform.tokenAddress,
@@ -275,14 +274,13 @@ async function getTokenDetails(req, res) {
             name: coinInfo.data.data[id].name,
             decimals: platform.decimals,
             symbol: coinInfo.data.data[id].symbol,
-            logoURI: `https://tokens.1inch.io/${platform.tokenAddress}.png`
+            logoURI: `https://api.cryptometric.com/storage/coin-icons/32x32/${logoImg}.png`,
+            tags: ["tokens"]
           });
         }
       }
     }
          await TokenData.bulkCreate(unmatchedTokens)
-
-    console.log("unmatchedTokens", unmatchedTokens,unmatchedTokens.length);
 
 
     res.status(200).json({
