@@ -116,7 +116,7 @@ const id=req.params.id
 try {
 const Users=await initializeUserModel()    
 const user = await Users.findOne({ where:{id:id}})
-console.log("DATA Get By Id Sucessfull")
+// console.log("DATA Get By Id Sucessfull")
 res.status(200).json({
 staus:true,
 msg:"Data Get Successfully",user

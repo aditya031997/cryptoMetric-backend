@@ -10,6 +10,9 @@ async function initializeUserModel() {
       primaryKey: true,
       autoIncrement: true,
     },
+    coinId :{
+      type: DataTypes.STRING,
+    },
     name: {
       type: DataTypes.STRING,
     },

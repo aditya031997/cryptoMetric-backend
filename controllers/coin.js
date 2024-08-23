@@ -1,5 +1,5 @@
-const CoinMarket = require('../models/coins');
-const Category = require('../models/category');
+const CoinMarket = require("../models/coins");
+const Category = require("../models/category");
 const createCryptoCoins = async (req, res) => {
   try {
     const Coin = await CoinMarket();
@@ -18,7 +18,7 @@ const createCryptoCoins = async (req, res) => {
     const allCoins = await Coin.findAll();
     for (const coin of coindataArray) {
       const coinObject = {
-        id: coin?.id,
+        coinId: coin?.id,
         name: coin?.name,
         slug: coin?.slug,
         symbol: coin?.symbol,
@@ -79,6 +79,8 @@ const getCoinData = async (req, res) => {
     res.status(500).json({ message: "Error retrieving coin data" });
   }
 };
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const addCoinCategories = async (req, res) => {
   try {
     const Categories = await Category();
@@ -105,6 +107,7 @@ const addCoinCategories = async (req, res) => {
 
     const categoriesPromises = categoriesData.map(async (category) => {
       try {
+        await delay(5000);
         const detailResponse = await fetch(
           `${apiUrl}/v1/cryptocurrency/category?id=${category.id}`,
           {
@@ -115,11 +118,15 @@ const addCoinCategories = async (req, res) => {
         );
 
         if (!detailResponse.ok) {
-          throw new Error(`Failed to fetch category details for ${category.id}: ${detailResponse.statusText}`);
+          throw new Error(
+            `Failed to fetch category details for ${category.id}: ${detailResponse.statusText}`
+          );
         }
 
         const detailData = await detailResponse.json();
-        const coins = detailData?.data?.coins ? detailData.data.coins.map(coin => coin.id) : [0];
+        const coins = detailData?.data?.coins
+          ? detailData.data.coins.map((coin) => coin.id)
+          : [0];
 
         const existingCategory = await Categories.findOne({
           where: { categoryId: category.id },
@@ -127,7 +134,11 @@ const addCoinCategories = async (req, res) => {
 
         if (existingCategory) {
           // Update coinsId if it was initially 0 and now has new coin IDs
-          if (existingCategory.coinsId.length === 1 && existingCategory.coinsId[0] === 0 && coins.length > 1) {
+          if (
+            existingCategory.coinsId.length === 1 &&
+            existingCategory.coinsId[0] === 0 &&
+            coins.length > 1
+          ) {
             return existingCategory.update({ coinsId: coins });
           }
         } else {
@@ -162,12 +173,11 @@ const addCoinCategories = async (req, res) => {
     });
   } catch (error) {
     console.error("Error retrieving coin data:", error);
-    res.status(500).json({ message: "Error retrieving coin data", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error retrieving coin data", error: error.message });
   }
 };
-
-
-
 
 const getCategories = async (req, res) => {
   try {
