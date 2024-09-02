@@ -296,14 +296,8 @@ async function getTokenDetails(req, res) {
       msg: tokenInfo,
     });
   } catch (error) {
-    if (error?.response) {
-      return res.status(200).json({
-        status: true,
-        msg: [],
-      });
-    }
     if (error?.response && error?.response?.status === 429) {
-      res.status(400).json({
+      res.status(429).json({
         status: false,
         msg: `You've exceeded your API Key's HTTP request rate limit.`,
       });
