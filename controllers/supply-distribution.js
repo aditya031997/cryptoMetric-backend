@@ -2,6 +2,8 @@ const { GoPlus, ErrorCode } = require("@goplus/sdk-node");
 const axios = require("axios");
 const goplusSupportedChains = require("../config/goPlusSupportedChains.json");
 const TokenModal = require("../models/blockChain-token");
+const { connectToDatabase } = require('../database/db'); 
+const { QueryTypes } = require('sequelize')
 const ethers = require("ethers");
 const networkConfig = require("../config/networkConfig.json");
 const getProvider = (chain) =>
@@ -185,124 +187,177 @@ async function supplyDistribution(req, res) {
 
 async function getTokenDetails(req, res) {
   const TokenData = await TokenModal();
-  try {
-    const { symbol } = req.query;
-    if (!symbol) {
-      return res.status(400).json({
-        status: false,
-        msg: "Symbol is required",
-      });
-    }
-    const options = {
-      method: "GET",
-      url: `${process.env.COIN_MARKET_CAP_API_URL}/map`,
-      params: { symbol: symbol },
-      headers: {
-        Accept: "application/json",
-        "X-CMC_PRO_API_KEY": process.env.COIN_MARKET_CAP_API_KEY,
-      },
-    };
-    let coinList;
+ try {
+   const { symbol } = req.query;
+   if (!symbol) {
+     return res.status(400).json({
+       status: false,
+       msg: "Symbol is required",
+     });
+   }
+   const sequelize = await connectToDatabase();
+    const [coin] = await sequelize.query(
+     `SELECT * FROM coins WHERE symbol = :symbol`,
+     {
+       replacements: { symbol },
+       type: sequelize.QueryTypes.SELECT,
+     }
+   );
 
-    coinList = await axios.request(options);
+   // Parse coin_info if it exists
+   let parsedCoinInfo = null;
+   try {
+     parsedCoinInfo = coin.coin_info ? JSON.parse(coin.coin_info) : null;
+   } catch (parseError) {
+     console.error('Error parsing coin_info:', parseError);
+   }
 
-    if (coinList.data.data.length === 0) {
-      return res.status(200).json({
-        status: true,
-        msg: [],
-      });
-    }
-    const id = coinList.data.data[0].id;
-    const options2 = {
-      method: "GET",
-      url: `${process.env.COIN_MARKET_CAP_API_URL}/info`,
-      params: { id: id },
-      headers: {
-        Accept: "application/json",
-        "X-CMC_PRO_API_KEY": process.env.COIN_MARKET_CAP_API_KEY,
-      },
-    };
-    const coinInfo = await axios.request(options2);
-    const contractAddresses = coinInfo.data.data[id].contract_address;
-    const keys = Object.keys(goplusSupportedChains);
-    const selectedChainsForDecimal = ["1", "56", "137", "8453", "43114"];
-    const tokenInfo = [];
-    const platforms = [];
-    if (symbol === "ETH") {
-      platforms.push({
-        chainId: "1",
-        chainName: "Ethereum",
-        tokenAddress: "0x0000000000000000000000000000000000000000",
-        decimals: 18,
-      });
-    } else {
-      for (const contract_address of contractAddresses) {
-        const platformName = contract_address.platform.name;
-        let decimals;
-        for (let i = 0; i < keys.length; i++) {
-          if (platformName == keys[i]) {
-            const found = selectedChainsForDecimal.find((value) => value == goplusSupportedChains[keys[i]]);
-            if (found) {
-              const provider = getProvider(goplusSupportedChains[keys[i]]);
-              const tokenInstance = new ethers.Contract(contract_address.contract_address, erc20Abi, provider);
-              decimals = await tokenInstance.decimals();
-            }
+   if (!parsedCoinInfo) {
+     const options = {
+       method: "GET",
+       url: `${process.env.COIN_MARKET_CAP_API_URL}/map`,
+       params: { symbol: symbol },
+       headers: {
+         Accept: "application/json",
+         "X-CMC_PRO_API_KEY": process.env.COIN_MARKET_CAP_API_KEY,
+       },
+     };
+     let coinList;
 
-            platforms.push({
-              chainId: goplusSupportedChains[keys[i]],
-              chainName: keys[i],
-              tokenAddress: contract_address.contract_address,
-              decimals: found ? decimals : [],
-            });
-          }
-        }
-      }
-    }
+     coinList = await axios.request(options);
 
-    tokenInfo.push({
-      name: coinInfo.data.data[id].name,
-      symbol: coinInfo.data.data[id].symbol,
-      category: coinInfo.data.data[id].category,
-      platform: platforms,
-    });
-    let unmatchedTokens = [];
-    for (const platform of platforms) {
-      if (selectedChainsForDecimal.includes(platform.chainId)) {
-        const existingToken = await TokenData.findOne({
-          where: {
-            address: platform.tokenAddress,
-            chainId: platform.chainId
-          }
-        });
-        const logoImg = coinInfo.data.data[id].name.toLowerCase().replace(/\s+/g, '-');
-        if (!existingToken) {
-          unmatchedTokens.push({
-            address: platform.tokenAddress,
-            chainId: platform.chainId,
-            name: coinInfo.data.data[id].name,
-            decimals: platform.decimals,
-            symbol: coinInfo.data.data[id].symbol,
-            logoURI: `https://api.cryptometric.com/storage/coin-icons/32x32/${logoImg}.png`,
-            tags: ["tokens"]
-          });
-        }
-      }
-    }
-    await TokenData.bulkCreate(unmatchedTokens)
+     if (coinList.data.data.length === 0) {
+       return res.status(200).json({
+         status: true,
+         msg: [],
+       });
+     }
+     const id = coinList.data.data[0].id;
+     const options2 = {
+       method: "GET",
+       url: `${process.env.COIN_MARKET_CAP_API_URL}/info`,
+       params: { id: id },
+       headers: {
+         Accept: "application/json",
+         "X-CMC_PRO_API_KEY": process.env.COIN_MARKET_CAP_API_KEY,
+       },
+     };
+     const coinInfo = await axios.request(options2);
+     const contractAddresses = coinInfo.data.data[id].contract_address;
+     const keys = Object.keys(goplusSupportedChains);
+     const selectedChainsForDecimal = ["1", "56", "137", "8453", "43114"];
+     const tokenInfo = [];
+     const platforms = [];
+     if (symbol === "ETH") {
+       platforms.push({
+         chainId: "1",
+         chainName: "Ethereum",
+         tokenAddress: "0x0000000000000000000000000000000000000000",
+         decimals: 18,
+       });
+     } else {
+       for (const contract_address of contractAddresses) {
+         const platformName = contract_address.platform.name;
+         let decimals;
+         for (let i = 0; i < keys.length; i++) {
+           if (platformName == keys[i]) {
+             const found = selectedChainsForDecimal.find((value) => value == goplusSupportedChains[keys[i]]);
+             if (found) {
+               const provider = getProvider(goplusSupportedChains[keys[i]]);
+               const tokenInstance = new ethers.Contract(contract_address.contract_address, erc20Abi, provider);
+               decimals = await tokenInstance.decimals();
+             }
 
+             platforms.push({
+               chainId: goplusSupportedChains[keys[i]],
+               chainName: keys[i],
+               tokenAddress: contract_address.contract_address,
+               decimals: found ? decimals : [],
+             });
+           }
+         }
+       }
+     }
 
-    res.status(200).json({
-      status: true,
-      msg: tokenInfo,
-    });
-  } catch (error) {
-    if (error?.response && error?.response?.status === 429) {
-      res.status(429).json({
-        status: false,
-        msg: `You've exceeded your API Key's HTTP request rate limit.`,
-      });
-    }
-  }
+     tokenInfo.push({
+       name: coinInfo.data.data[id].name,
+       symbol: coinInfo.data.data[id].symbol,
+       category: coinInfo.data.data[id].category,
+       platform: platforms,
+     });
+     let unmatchedTokens = [];
+     for (const platform of platforms) {
+       if (selectedChainsForDecimal.includes(platform.chainId)) {
+         const existingToken = await TokenData.findOne({
+           where: {
+             address: platform.tokenAddress,
+             chainId: platform.chainId
+           }
+         });
+         const logoImg = coinInfo.data.data[id].name.toLowerCase().replace(/\s+/g, '-');
+         if (!existingToken) {
+           unmatchedTokens.push({
+             address: platform.tokenAddress,
+             chainId: platform.chainId,
+             name: coinInfo.data.data[id].name,
+             decimals: platform.decimals,
+             symbol: coinInfo.data.data[id].symbol,
+             logoURI: `https://api.cryptometric.com/storage/coin-icons/32x32/${logoImg}.png`,
+             tags: ["tokens"]
+           });
+         }
+       }
+     }
+     await TokenData.bulkCreate(unmatchedTokens)
+     
+     const tokenData = {
+       category: coinInfo.data.data[id].category,
+       platform: platforms,
+     };
+     
+     // Update coin_info in the database
+     await sequelize.query(
+       `UPDATE coins SET coin_info = :tokenData WHERE symbol = :symbol`,
+       {
+         replacements: { 
+           tokenData: JSON.stringify(tokenData),
+           symbol: symbol 
+         },
+         type: sequelize.QueryTypes.UPDATE
+       }
+     );
+
+     return res.status(200).json({
+       status: true,
+       msg: tokenInfo,
+     });
+   } else {
+     // If coin_info exists, return the coin details with parsed coin_info
+     const responseMsg = {
+       ...coin,
+       coin_info: parsedCoinInfo
+     };
+
+     return res.status(200).json({
+       status: true,
+       msg: responseMsg,
+     });
+   }
+ } catch (error) {
+   console.error('Error in getTokenDetails:', error);
+   if (error?.response && error?.response?.status === 429) {
+     res.status(429).json({
+       status: false,
+       msg: `You've exceeded your API Key's HTTP request rate limit.`,
+     });
+   } else {
+     // Handle other potential errors
+     res.status(500).json({
+       status: false,
+       msg: error.message || "An unexpected error occurred"
+     });
+   }
+ }
 }
 
 module.exports = {
