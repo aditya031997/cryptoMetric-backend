@@ -53,7 +53,7 @@ const fetchData = async () => {
 
 const startCronJob = (io) => {
   try {
-    const job = new cron.CronJob("*/5 * * * *", async () => {
+    const job = new cron.CronJob("*/10 * * * *", async () => {
       await fetchData();
       if (io) {
         io.emit("UpdatedTableListing", socketData);
